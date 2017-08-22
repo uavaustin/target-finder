@@ -43,8 +43,33 @@ def load_requirements():
         List[str]: A list of pip readable strings.
     """
 
+    req = []
+    actual = []
+
     with open(REQUIREMENTS_PATH, 'r') as requirements:
-        return requirements.read().split('\n')
+        req = requirements.read().split('\n')
+
+    for r in req:
+        if 'tensorflow' in r:
+            # If the environment variable to use the GPU-enabled
+            # Tensorflow library is set, install it instead
+            if os.environ.get('USE_GPU_TENSORFLOW', '0') != '0':
+                actual.append(r.replace('tensorflow', 'tensorflow-gpu'))
+            else:
+                actual.append(r)
+
+        elif 'opencv-python' in r:
+            # If we can already import OpenCV we don't shouldn't try
+            # to install it
+            try:
+                import cv2
+            except ImportError as e:
+                actual.append(r)
+
+        else:
+            actual.append(r)
+
+    return actual
 
 
 setup(
@@ -58,7 +83,7 @@ setup(
     entry_points='''
         [console_scripts]
         train=target_finder.cli:do_train
-        get_targets=target_finder.cli:get_targets
+        get_targets=target_finder.cli:do_get_targets
     ''',
     license='MIT'
 )

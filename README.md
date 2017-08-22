@@ -24,16 +24,19 @@ before recognizing targets.
 ## Using the GPU
 
 By default the library requires the CPU-only version of Tensorflow. If you'd
-like to run it with the GPU, uninstall the version this one installed and
-replace it with the GPU version like so
+like to run it with the GPU, set the `USE_GPU_TENSORFLOW` to `1` *before*
+installing target-finder.
 
 ```sh
-$ pip uninstall tensorflow
-$ pip install tensorflow-gpu
+# On bash
+export USE_GPU_TENSORFLOW=1
+# For CMD
+set USE_GPU_TENSORFLOW=1
 ```
 
 *Check [here](https://www.tensorflow.org/install/) to make sure you have the
-requirements for using the GPU.*
+requirements for using the GPU.* Otherwise, install any pre-reqs before
+installing target-finder.
 
 # Testing
 The target-finder library uses [tox](https://github.com/tox-dev/tox) to manage
