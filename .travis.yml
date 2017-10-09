@@ -7,11 +7,13 @@ addons:
         repo_token: $CODE_CLIMATE_TOKEN
 env:
     global:
+        - TF_DROPBOX_DIR="~/dropbox"
         - TF_TRAINING_IMG="~/dropbox/train"
         - TF_TESTING_IMG="~/dropbox/testing"
 install:
     - pip install .
 before_script:
+    - mkdir $TF_DROPBOX_DIR
     - curl -L -o $TF_TRAINING_IMG".zip" $TRAINING_IMG_URL
     - curl -L -o $TF_TESTING_IMG".zip" $TESTING_IMG_URL
     - unzip $TF_TRAINING_IMG".zip" -x / -d $TF_TRAINING_IMG
