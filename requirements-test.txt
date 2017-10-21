@@ -1,3 +1,4 @@
 pytest
 pytest-cov>=2
 pyyaml
+python-dotenv>=0.7
