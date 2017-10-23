@@ -18,8 +18,10 @@ def collect_images():
     """
 
     config = _read_target_config()
+    config = _listify_targets(config)
 
     return config
+
 
 def _read_target_config():
     """Get the filenames from targets.yml"""
@@ -51,3 +53,16 @@ def _read_target_config():
 
     with open(target_config, 'r') as f:
         return yaml.load(f)
+
+
+def _listify_targets(config):
+    "Make sure targets are in lists"
+    for filename in config.keys():
+        # If no targets were listed, it should be an empty list
+        if config[filename] == None:
+            config[filename] = []
+        # Otherwise, if they aren't lists make them lists
+        elif not isinstance(config[filename], list):
+            config[filename] = [config[filename]]
+
+    return config
