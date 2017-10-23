@@ -4,6 +4,50 @@ import dotenv
 import yaml
 
 
+TARGET_PROPERTIES = [
+    'x',
+    'y',
+    'position_tol',
+    'orientation',
+    'orientation_tol',
+    'shape',
+    'background_color',
+    'alphanumeric',
+    'alphanumeric_color'
+]
+
+
+SHAPES = [
+    'circle',
+    'semicircle',
+    'quarter_circle',
+    'triangle',
+    'square',
+    'rectangle',
+    'trapezoid',
+    'pentagon',
+    'hexagon',
+    'heptagon',
+    'octagon',
+    'star',
+    'cross'
+]
+
+
+COLORS = [
+    'white',
+    'black',
+    'gray',
+    'red',
+    'blue',
+    'green',
+    'yellow',
+    'purple',
+    'brown',
+    'orange'
+]
+
+
 def collect_images():
     """Collect images from the e2e testing directory.
 
@@ -19,6 +63,8 @@ def collect_images():
 
     config = _read_target_config()
     config = _listify_targets(config)
+
+    _check_target_properties(config)
 
     return config
 
@@ -66,3 +112,25 @@ def _listify_targets(config):
             config[filename] = [config[filename]]
 
     return config
+
+
+def _check_target_properties(config):
+    "Throw an error if an invalid target was listed"
+    for filename in config.keys():
+        for target in config[filename]:
+            if not all(prop in TARGET_PROPERTIES for prop in target.keys()):
+                raise Exception('Invalid target property for ' + filename)
+
+            if 'shape' in target.keys() and not target['shape'] in SHAPES:
+                raise Exception('Invalid shape for ' + filename)
+
+            if 'background_color' in target.keys() and \
+                    not target['background_color'] in COLORS:
+                print(target['background_color'])
+                print(COLORS)
+
+                raise Exception('Invalid background_color for ' + filename)
+
+            if 'alphanumeric_color' in target.keys() and \
+                    not target['alphanumeric_color'] in COLORS:
+                raise Exception('Invalid alphanumeric_color for ' + filename)
