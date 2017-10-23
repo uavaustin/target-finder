@@ -102,3 +102,7 @@ ENV/
 
 # IDEs
 .idea
+
+# Ignore the training and testing folders
+*[tT]raining[ \-_][iI]mages*/
+*[tT]esting[ \-_][iI]mages*/
