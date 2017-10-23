@@ -1,0 +1,157 @@
+#####################################################################
+#
+# Listing of true targets in the images
+#
+# After adding a new image to the training set, each target that
+# should be found needs to be listed here.
+#
+# The e2e testing scripts will only test against images listed in
+# this file and will test them in the order presented here.
+#
+# Both .jpg and .png images may be tested.
+#
+# Instructions
+# -----------
+#
+# Filenames should simply be listed as path/to/image.jpg. Glob
+# patterns are allowed for testing many files at once (for example
+# something/img-*.png would match both something/img-0001.png and
+# something/img-1337.png).
+#
+# Targets can have the following attributes (attributes not listed
+# will simple be ignored):
+#
+#     x - The x position of the target in the image from 0 to 1.
+#
+#         An x value of 0 means the center of the target is all the
+#         way to the left in the image, a value 0.5 is in the center,
+#         and a value of 1 is all the way to the right.
+#
+#     y - The y position of the target in the image from 0 to 1.
+#
+#         An x value of 0 means the center of the target is all the
+#         way at the bottom in the image, a value 0.5 is in the
+#         center, and a value of 1 is all the way at the top.
+#
+#     position_tol - How much error is allowed for x and y.
+#
+#         Defaults to 0.05.
+#
+#     orientation - The orientation of the target from 0 to 359.
+#
+#         An orientation of 0 means the target is not rotated, an
+#         orientation of 90 means it the top of the target points to
+#         the right of the image.
+#
+#     orientation_tol - How much error is allowed for orientation.
+#
+#         Defaults to 15.
+#
+#     shape - The shape of the target.
+#
+#         Must be one of the following:
+#             circle
+#             semicircle
+#             quarter_circle
+#             triangle
+#             square
+#             rectangle
+#             trapezoid
+#             pentagon
+#             hexagon
+#             heptagon
+#             octagon
+#             star
+#             cross
+#
+#     background_color - The main color of the target.
+#
+#         Must be one of the following:
+#             white
+#             black
+#             gray
+#             red
+#             blue
+#             green
+#             yellow
+#             purple
+#             brown
+#             orange
+#
+#      alphanumeric - The letter or number on the target.
+#
+#          May consist of one or more of the characters 0-9, A-Z,
+#          a-z. Typically, this will only be one capital letter.
+#
+#      alphanumeric_color - The main color of the target.
+#
+#          Must be one of the following:
+#              white
+#              black
+#              gray
+#              red
+#              blue
+#              green
+#              yellow
+#              purple
+#              brown
+#              orange
+#
+# Images without targets:
+#
+#     Simply list the filename without defining any targets below it.
+#
+# Images with a single target:
+#
+#     The attributes can be listed just directly under the filename.
+#
+# Images with multiple targets:
+#
+#     The attributes should be listed in smaller objects in a list
+#     under the filename.
+#
+# Example image with one target:
+#
+#     img-000001.jpg:
+#         x: 0.1223
+#         y: 0.6783
+#         position_tol: 0.1
+#         orientation: 44
+#         orientation_tol: 20
+#         shape: star
+#         background_color: red
+#         alphanumeric: R
+#         alphanumeric_color: white
+#
+#####################################################################
+
+image-0001.png:
+    x: 0.45
+    y: 0.783
+    shape: square
+image-0002.jpg:
+    x: 0.123
+    y: 0.234
+    position_tol: 0.02
+    orientation: 67
+    orientation_tol: 2
+    shape: trapezoid
+    background_color: white
+    alphanumeric: N
+    alphanumeric_color: blue
+path/to/folder/with/no-targets.png:
+match/a/lot/of/images-*.png:
+    x: 0.234
+    y: 0.876
+many-targets.png:
+    -
+        x: 0.2
+        y: 0.5
+    -
+        x: 0.6
+        y: 0.7
+        shape: star
+    -
+        x: 0.9
+        y: 0.1
+        shape: square
