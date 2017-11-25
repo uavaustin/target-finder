@@ -6,10 +6,10 @@ from target_finder import Color, Shape, Target
 
 
 def test_basic_target():
-    t = Target(0.5, 0.5, Shape.SQUARE)
+    t = Target(0.4, 0.6, Shape.SQUARE)
 
-    assert t.x == 0.5
-    assert t.y == 0.5
+    assert t.x == 0.4
+    assert t.y == 0.6
     assert t.shape == Shape.SQUARE
 
 
@@ -49,3 +49,43 @@ def test_target_x_y_max_range():
 
     assert t_3.x == 1
     assert t_3.y == 1
+
+
+def test_target_orientation_range():
+    t = Target(0.5, 0.5, Shape.CIRCLE)
+
+    testing_values = [
+        [1, 1],
+        [359, 359],
+        [0, 0],
+        [360, 0],
+        [-1, 359],
+        [-1000, 80],
+        [1000, 280],
+        [123.456789, 123.456789]
+    ]
+
+    # Looping through them each and allowing for an absolute error of
+    # 1e-10.
+    for pair in testing_values:
+        actual = pair[0]
+        expected = pair[1]
+
+        t.orientation = actual
+
+        assert abs(expected - t.orientation) < 1e-10
+
+
+def test_target_alphanumeric():
+    t = Target(0.5, 0.5, Shape.OCTAGON)
+
+    valid = ['A', 'Z', 'a', 'z', '0', '9', 'Word', '123', 'h4llo']
+    invalid = [' ', 'Invalid Input', '#', '$$$', '*']
+
+    for string in valid:
+        t.alphanumeric = string
+        assert t.alphanumeric == string
+
+    for string in invalid:
+        with pytest.raises(ValueError):
+            t.alphanumeric = string
