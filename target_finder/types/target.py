@@ -2,8 +2,8 @@
 
 from math import fmod
 
-from color import Color
-from shape import Shape
+from .color import Color
+from .shape import Shape
 
 
 class Target(object):

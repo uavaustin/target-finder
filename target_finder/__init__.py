@@ -1,3 +1,4 @@
+from .types import Color, Shape, Target
 from .version import __version__
 
 def train():
