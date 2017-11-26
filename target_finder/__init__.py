@@ -1,4 +1,4 @@
-from .types import Color, Shape, Target
+from .types import Blob, Color, Shape, Target
 from .version import __version__
 
 def train():
