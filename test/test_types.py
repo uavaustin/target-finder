@@ -142,3 +142,24 @@ def test_target_alphanumeric():
     for string in invalid:
         with pytest.raises(ValueError):
             t.alphanumeric = string
+
+
+def test_target_confidence_range():
+    t = Target(0.5, 0.5, Shape.HEXAGON)
+
+    t.confidence = 0.5
+    assert t.confidence == 0.5
+
+    t.confidence = 0
+    assert t.confidence == 0
+
+    t.confidence = 1
+    assert t.confidence == 1
+
+    with pytest.raises(ValueError):
+        t.confidence = -0.01
+
+    with pytest.raises(ValueError):
+        t.confidence = 1.01
+
+    assert t.confidence == 1

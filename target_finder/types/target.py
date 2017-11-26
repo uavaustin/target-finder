@@ -33,6 +33,8 @@ class Target(object):
             letter.
         alphanumeric_color (Color): The target alphanumeric color.
         image (PIL.Image): Image showing the target.
+        confidence (float): The confidence that the target exists 
+            (0 <= confidence <= 1).
     """
 
     def __init__(self, x, y, shape):
@@ -56,6 +58,7 @@ class Target(object):
         self.alphanumeric_color = Color.NONE
 
         self.image = None
+        self.confidence = None
 
     @property
     def x(self):
@@ -144,3 +147,17 @@ class Target(object):
     @image.setter
     def image(self, image):
         self._image = image
+
+    @property
+    def confidence(self):
+        """"The confidence that the target exists."""
+        return self._confidence
+
+    @confidence.setter
+    def confidence(self, confidence):
+        if confidence is None:
+            self._confidence = None
+        elif confidence >= 0 and confidence <= 1:
+               self._confidence = confidence
+        else:
+            raise ValueError('0 <= confidence <= 1')
