@@ -1,7 +1,7 @@
 """Contains the Blob class."""
 
 class Blob(object):
-    """Represents a block with a possible target.
+    """Represents a blob with a possible target.
 
     This is for the middle stage before the target is identified.
 
@@ -16,13 +16,14 @@ class Blob(object):
     """
 
     def __init__(self, x, y, image):
-        """Create a new Target object.
+        """Create a new Blob object.
 
         Args:
             x (float): The x position from left to right
                 (0 <= x <= 1).
             y (float): The y position from bottom to top
                 (0 <= y <= 1).
+            image (PIL.Image): Image for the blob.
         """
 
         self.x = x
