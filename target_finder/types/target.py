@@ -7,7 +7,7 @@ from .shape import Shape
 
 
 class Target(object):
-    """Represets a target found on an image.
+    """Represents a target found on an image.
 
     This is intended to be built upon as the the target is being
     classified.
@@ -33,8 +33,6 @@ class Target(object):
             letter.
         alphanumeric_color (Color): The target alphanumeric color.
         image (PIL.Image): Image showing the target.
-        image_wdith (int): Image width in pixels.
-        image_height (int): Image height in pixels.
     """
 
     def __init__(self, x, y, shape):
@@ -58,8 +56,6 @@ class Target(object):
         self.alphanumeric_color = Color.NONE
 
         self.image = None
-        self.image_width = None
-        self.image_height = None
 
     @property
     def x(self):
@@ -148,21 +144,3 @@ class Target(object):
     @image.setter
     def image(self, image):
         self._image = image
-
-    @property
-    def image_width(self):
-        """Image width in pixels."""
-        return self._image_width
-
-    @image_width.setter
-    def image_width(self, width):
-        self._image_width = width
-
-    @property
-    def image_height(self):
-        """Image height in pixels."""
-        return self._image_height
-
-    @image_height.setter
-    def image_height(self, height):
-        self._image_height = height
