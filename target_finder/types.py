@@ -61,7 +61,7 @@ class Blob(object):
 
     Attributes:
         x (int): The x position of the top-left corner in pixels.
-        y (itn): The y position of the top-left corner in pixels.
+        y (int): The y position of the top-left corner in pixels.
         width (int): The width of the blob in pixels.
         height (int): The height of the blob in pixels.
         image (PIL.Image): Image for the blob.
