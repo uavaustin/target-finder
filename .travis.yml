@@ -2,29 +2,10 @@ language: python
 python:
     - '3.6'
 sudo: false
-addons:
-    code_climate:
-        repo_token: $CODE_CLIMATE_TOKEN
-env:
-    global:
-        - TF_DROPBOX_DIR="$HOME/dropbox"
-        - TF_TRAINING_IMG="$TF_DROPBOX_DIR/train"
-        - TF_TESTING_IMG="$TF_DROPBOX_DIR/testing"
 install:
     - pip install .
-before_script:
-    - mkdir -p $TF_DROPBOX_DIR
-    - curl -L -o "$TF_TRAINING_IMG.zip" $TRAINING_IMG_URL
-    - curl -L -o "$TF_TESTING_IMG.zip" $TESTING_IMG_URL
-    - unzip "$TF_TRAINING_IMG.zip" -x / -d $TF_TRAINING_IMG
-    - unzip "$TF_TESTING_IMG.zip" -x / -d $TF_TESTING_IMG
-    - pip install tox tox-travis
 script:
-    - tox -e unit
-after_success:
-    # Coverage should be uploaded after e2e testing
-    # - pip install codeclimate-test-reporter
-    # - codeclimate-test-reporter
+    - pytest test
 notifications:
     email: false
     slack:
