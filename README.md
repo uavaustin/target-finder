@@ -1,70 +1,49 @@
 # target-finder
 
-[![Build Status](
-    http://ci.uavaustin.org/job/target-finder-smoke/badge/icon)](
-    http://ci.uavaustin.org/view/Image%20Recognition/)
-
-Python library for identifying AUVSI SUAS targets
+Python library for identifying AUVSI SUAS targets.
 
 ## Installation
 
-To install from source, try this:
+To install from source right from GitHub, run the following:
 
 ```sh
 $ pip install git+https://github.com/uavaustin/target-finder.git
 ```
 
-This should be able to get the OpenCV dependency as well. If you already have
-an OpenCV installation (that was not installed by `pip install opencv-python`)
-this might cause problems.
+Python 3 is required. *If `python --version` shows Python 2, then use `python3`
+and `pip3` instead.*
 
-Installs from source will not contain trained models, you'll need to train
-before recognizing targets.
+This will not install OpenCV and Tensorflow automatically, those must be
+installed separately. Other dependencies, however, will be fetched
+automatically.
 
-## Using the GPU
+The easiest way to install OpenCV is with `pip install opencv-python`. However,
+this [might not work on all platforms](
+    https://github.com/skvark/opencv-python/issues/13).
 
-By default the library requires the CPU-only version of Tensorflow. If you'd
-like to run it with the GPU, set the `USE_GPU_TENSORFLOW` to `1` *before*
-installing target-finder.
+To get Tensorflow, you can either run `pip install tensorflow` or
+`pip install tensorflow-gpu`. The GPU version can only be used if the
+[Tensorflow GPU requirements](
+    https://www.tensorflow.org/install/install_linux#NVIDIARequirements) are
+met.
 
-```sh
-# On bash
-export USE_GPU_TENSORFLOW=1
-# For CMD
-set USE_GPU_TENSORFLOW=1
+## Testing
+
+To run the tests you'll first need to install install pytest if it is not
+already installed: `pip install pytest`.
+
+The OpenCV and Tensorflow depenedencies must also be installed per the
+installation instructions.
+
+Before running the tests, you'll need to install the target-finder library with
+`pip`. The best way to do it is with the `-e` flag so you can make changes to
+the library without needing to reinstall each time you edit a file. Afterwards,
+just use `pytest` to run the tests.
+
 ```
+# Should only need to do this once.
+$ pip install -e .
 
-*Check [here](https://www.tensorflow.org/install/) to make sure you have the
-requirements for using the GPU.* Otherwise, install any pre-reqs before
-installing target-finder.
-
-# Testing
-The target-finder library uses [tox](https://github.com/tox-dev/tox) to manage
-its tests. Both smoke and end-to-end tests are handled by tox separately.
-
-To run the tests, first install tox.
-
-```sh
-$ pip install tox
-```
-
-Now smoke and end-to-end tests can be run by simply calling
-
-```sh
-$ tox
-```
-
-in the main directory.
-
-To run only the smoke or end-to-end tests use the following:
-
-```sh
-$ tox -e smoke
-$ tox -e e2e
-```
-
-To run end-to-end tests without training, use the following:
-
-```sh
-$ tox -e e2e-no-train
+# Run the test suite.
+$ pytest
 ```
