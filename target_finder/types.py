@@ -67,7 +67,7 @@ class Blob(object):
         image (PIL.Image): Image for the blob.
     """
 
-    def __init__(self, x, y, width, height, image=None):
+    def __init__(self, x, y, width, height, image):
         """Create a new Blob object."""
         self.x = x
         self.y = y

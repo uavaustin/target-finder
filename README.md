@@ -27,6 +27,11 @@ To get Tensorflow, you can either run `pip install tensorflow` or
     https://www.tensorflow.org/install/install_linux#NVIDIARequirements) are
 met.
 
+## Command-line Interface
+
+The library ships with `target-finder-cli` command, type `target-finder-cli -h`
+in the command-line after installing for help and usage.
+
 ## Testing
 
 To run the tests you'll first need to install install pytest if it is not

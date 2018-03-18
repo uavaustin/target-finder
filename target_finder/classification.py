@@ -1,6 +1,5 @@
 """Contains logic for finding targets in blobs."""
 
-
 from .preprocessing import find_blobs
 from .types import Color, Shape, Target
 
@@ -18,21 +17,20 @@ def find_targets(image=None, blobs=None, min_confidence=0.95, limit=10):
     limit is hit, classification will stop and just take the first
     ones.
 
-    If blobs aren't provided, this will call the find_blobs()
-    function with default options.
+    Either the image or blobs should be provided. If just passing in
+    an image, all the defaults will be used when finding blobs.
 
     Args:
         image (PIL.Image, optional): The image to use, this must be
-            provided if either no blobs are passed or if the blobs
-            passed in do not have cropped images attached. Default is
-            None.
+            provided if no blobs are passed in.
         blobs (List[Blob], optional): The list of blobs to use if
             they've already been found. If None is passed, then
             find_blobs() will be called prior to classification.
             Default is None.
         min_confidence (float, optional): Confidence threshold to
             use (0 <= confidence <= 1). Default is 0.95.
-        limit (int, optional): The maximum number of blobs to return.
+        limit (int, optional): The maximum number of targets to
+            return.
 
     Returns:
         List[Target]: The list of targets found.
@@ -40,32 +38,26 @@ def find_targets(image=None, blobs=None, min_confidence=0.95, limit=10):
 
     # Check that if we don't have an image passed, that the each
     # blobs have their own image.
-    if image is None:
-        if blobs is None:
-            raise Exception('Blobs must be provided if an image is not.')
+    if image is None and blobs is None:
+        raise Exception('Blobs must be provided if an image is not.')
 
-        for blob in blobs:
-            if blob.image is None:
-                raise Exception('Either an image must be provided, or each'
-                        'blob must have it\'s own image.')
-
-    # If we weren't even blobs, then we'll find them.
+    # If we didn't get blobs, then we'll find them.
     if blobs is None:
         blobs = find_blobs(image)
 
     targets = []
 
-    # Try and find a target for each blob, if it exists then
-    # register it. Stop if hit the limit.
+    # Try and find a target for each blob, if it exists then register
+    # it. Stop if we hit the limit.
     for blob in blobs:
-        if len(targets) == limit:
-            break
+        if len(targets) == limit: break
 
-        target = _do_classify(blob)
+        target = _do_classify(blob, min_confidence)
 
         if target is not None:
+            # TODO - prevent duplicates in case a target is too
+            #        similar to another one.
             targets.append(target)
-
 
     # Sorting with highest confidence first.
     targets.sort(key=lambda t: t.confidence, reverse=True)
@@ -73,7 +65,7 @@ def find_targets(image=None, blobs=None, min_confidence=0.95, limit=10):
     return targets
 
 
-def _do_classify(blob):
+def _do_classify(blob, min_confidence):
     """Perform the classification on a blob.
 
     Returns None if it's not a target.
