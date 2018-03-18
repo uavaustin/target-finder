@@ -3,6 +3,7 @@ python:
     - '3.6'
 sudo: false
 install:
+    - pip install tensorflow opencv-python
     - pip install .
 script:
     - pytest test
