@@ -57,8 +57,7 @@ setup(
     install_requires=[load_requirements()],
     entry_points='''
         [console_scripts]
-        train=target_finder.cli:do_train
-        get_targets=target_finder.cli:do_get_targets
+        target-finder-cli=target_finder.cli:run
     ''',
     license='MIT'
 )
