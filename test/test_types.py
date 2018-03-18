@@ -6,20 +6,10 @@ import pytest
 from target_finder import Blob, Color, Shape, Target
 
 
-def test_basic_blob():
-    b = Blob(150, 250, 50, 100)
-
-    assert b.x == 150
-    assert b.y == 250
-    assert b.width == 50
-    assert b.height == 100
-    assert b.image == None
-
-
-def test_blob_with_image():
+def test_blob():
     image = PIL.Image.new('1', (200, 300))
 
-    b = Blob(100, 200, 20, 30, image=image)
+    b = Blob(100, 200, 20, 30, image)
 
     assert b.x == 100
     assert b.y == 200
