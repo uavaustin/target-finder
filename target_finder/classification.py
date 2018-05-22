@@ -9,6 +9,25 @@ from .types import Color, Shape, Target
 #       have a user-made one, if so, we'll use that one. Otherwise,
 #       we'll use a default model that ships with the library.
 
+def tf_init(graph_loc="data/retrained_graph.pb", labels_loc="data/retrained_labels.txt"):
+
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+    # Loads label file, strips off carriage return
+    label_lines = [line.rstrip() for line in tf.gfile.GFile(labels_loc)]
+
+    # Unpersists graph from file
+    with tf.gfile.FastGFile(graph_loc, 'rb') as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+        _ = tf.import_graph_def(graph_def, name='')
+
+    sess = tf.Session()
+
+    softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
+
+    return label_lines, sess, softmax_tensor
+
 
 def find_targets(image=None, blobs=None, min_confidence=0.95, limit=10):
     """Returns the targets found in an image.
@@ -71,5 +90,17 @@ def _do_classify(blob, min_confidence):
     Returns None if it's not a target.
     """
 
-    # TODO: Implement.
-    return None
+    cropped_img = blob.image
+
+    image_array = cropped_img.convert('RGB')
+    predictions = sess.run(softmax_tensor, {'DecodeJpeg:0': image_array})
+
+    top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
+
+    shape = label_lines[top_k[0]]
+    confidence = predictions[0][top_k[0]]
+
+    if confidence > min_confidence and shape != 'nas':
+        return None
+    else:
+        return shape

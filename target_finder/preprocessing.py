@@ -27,7 +27,7 @@ def find_blobs(image, min_width=20, limit=100, padding=10):
 
     # First, we find the edges in the image.
     cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-    edges = cv2.Canny(cv_image, 50, 200)
+    edges = cv2.Canny(cv_image, 200, 500)
 
     # Next, we find the contours according to the threshold.
     ret, thresh = cv2.threshold(edges, 127, 255, 0)
