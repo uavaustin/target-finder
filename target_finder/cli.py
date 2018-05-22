@@ -17,7 +17,7 @@ subparsers = parser.add_subparsers(dest='subcommand', title='subcommands')
 blob_parser = subparsers.add_parser('blobs', help='finds the interesting '
                                                   'blobs in images')
 blob_parser.add_argument('filename', type=str, nargs='+',
-                         help='the PNG images or image directories')
+                         help='the images or image directories')
 blob_parser.add_argument('-o', '--output', type=str, action='store',
                          default='.', help='output directory (defaults to '
                                            'current dir)')
@@ -55,7 +55,7 @@ def run_blobs(args):
         for blob in blobs:
             print('Saving blob #{:06d} from {:s}'.format(blob_num, filename))
 
-            basename = 'blob-{:06d}.png'.format(blob_num)
+            basename = 'blob-{:06d}.jpg'.format(blob_num)
             blob.image.save(os.path.join(args.output, basename))
 
             blob_num += 1
@@ -71,12 +71,12 @@ def _list_images(filenames):
         if os.path.isfile(filename):
             images.append(filename)
 
-        # If this is a directory, add the files ending with .png or
-        # .PNG to the list.
+        # If this is a directory, add the files ending with .jpg or
+        # .jpeg (case-insensitive) to the list.
         elif os.path.isdir(filename):
             for inner_filename in os.listdir(filename):
-                if inner_filename.endswith('.png') or \
-                        inner_filename.endswith('.PNG'):
+                if inner_filename.lower().endswith('.jpg') or \
+                        inner_filename.lower().endswith('.jpeg'):
                     images.append(os.path.join(filename, inner_filename))
 
         # If it's not either above, exit.
