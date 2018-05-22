@@ -107,5 +107,5 @@ ENV/
 .pytest_cache/
 
 # target-finder-cli output
-/blob-*.png
-/target-*.png
+/blob-*.jpg
+/target-*.jpg
