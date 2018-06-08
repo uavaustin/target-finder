@@ -47,8 +47,9 @@ def run_blobs(args):
 
     for filename in _list_images(args.filename):
         image = PIL.Image.open(filename)
+        mask_img = cv2.imread(filename)
 
-        blobs = find_blobs(image, min_width=args.min_width, limit=args.limit,
+        blobs = find_blobs(image, mask_img, min_width=args.min_width, limit=args.limit,
                                   padding=args.padding)
 
         # Saving each blob we find with an incrementing number.
