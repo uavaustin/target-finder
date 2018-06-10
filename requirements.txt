@@ -1,1 +1,8 @@
 Pillow>=4.3.0
+cv2
+glob
+os
+scipy (uses scipy.cluster, scipy.misc)
+tensorflow
+webcolors 1.7
+pytesseract 0.2.0
