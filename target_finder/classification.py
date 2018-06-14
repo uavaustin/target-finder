@@ -1,13 +1,11 @@
 """Contains logic for finding targets in blobs."""
 
-#CHANGE IMWRITE TO PIL 2 CV2
-
 from .preprocessing import find_blobs
 from .types import Color, Shape, Target
 import cv2
 from PIL import Image
-import glob
 import numpy as np
+import pytesseract
 import os
 import scipy.cluster, scipy.misc
 import tensorflow as tf
@@ -16,8 +14,12 @@ from pkg_resources import resource_filename
 
 graph_loc = resource_filename(__name__, 'data/retrained_graph.pb')
 labels_loc = resource_filename(__name__, 'data/retrained_labels.txt')
+#pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files (x86)/Tesseract-OCR/tesseract'
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+#warnings.filterwarnings("ignore")
+
+#tf.device('/cpu:0')
 
 # Loads label file, strips off carriage return
 label_lines = [line.rstrip() for line in tf.gfile.GFile(labels_loc)]
@@ -28,13 +30,17 @@ with tf.gfile.FastGFile(graph_loc, 'rb') as f:
     graph_def.ParseFromString(f.read())
     _ = tf.import_graph_def(graph_def, name='')
 
-sess = tf.Session()
+#config = tf.ConfigProto(
+#    device_count = {'GPU': 0}
+#)
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
 
 softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
 
-
-
-def find_targets(image=None, mask_img=None, blobs=None, min_confidence=0.85, limit=10):
+def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
     """Returns the targets found in an image.
 
     Targets are returned in the order of highest confidence. Once the
@@ -67,7 +73,7 @@ def find_targets(image=None, mask_img=None, blobs=None, min_confidence=0.85, lim
 
     # If we didn't get blobs, then we'll find them.
     if blobs is None:
-        blobs = find_blobs(image, mask_img)
+        blobs = find_blobs(image)
 
     targets = []
 
@@ -89,7 +95,32 @@ def find_targets(image=None, mask_img=None, blobs=None, min_confidence=0.85, lim
     return targets
 
 
-#def get_alpha():
+def get_alpha(blob, Target):
+
+    angle = 0
+    delta_angle = 10
+
+    mask_img = np.array(blob.image)
+
+    alpha_mask = np.zeros(mask_img.shape[:2], dtype='uint8')
+    cv2.drawContours(alpha_mask, blob.cnt, -1, 255, -1)
+    alphaedges = cv2.bitwise_and(blob.edges, blob.edges, mask=alpha_mask)
+    cv2.drawContours(alphaedges, blob.cnt, -1, (0,0,0), 2)
+    #width, height = dst.shape[:2]
+
+    while angle < 360:
+        img = alphaedges
+        image_array = img.rotate(angle)
+        #data = pytesseract.image_to_data(image_array)
+        text = image_to_string(image_array)
+        angle += delta_angle
+
+        if text in alphas:
+            Target.alphanumeric = text
+            Target.orientation = angle
+            break
+
+
 
 def get_color_name(requested_color, prev_color, colors_set):
 
@@ -130,7 +161,9 @@ def get_color(blob):
                   '#bc3c3c': 'red', '#ff5050': 'red', '#ff0000': 'red', '#9a0000': 'red',
                   '#800080': 'purple'}
 
-    dst = blob.mask_img
+    mask_img = np.array(blob.image)
+
+    dst = mask_img
     width, height = dst.shape[:2]
 
     if width > height:
@@ -144,22 +177,21 @@ def get_color(blob):
         y1 = blob.x
         y2 = blob.x + blob.width
 
-    if blob.Mask:
-        mask = np.zeros(blob.mask_img.shape[:2], dtype='uint8')
+    if blob.has_mask:
+        mask = np.zeros(mask_img.shape[:2], dtype='uint8')
         cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
-        dst = cv2.bitwise_and(blob.mask_img, blob.mask_img, mask=mask)
-        dst = dst[x1:x2, y1:y2]
-        cv2.imwrite("dst.png", dst)
+        dst = cv2.bitwise_and(mask_img, mask_img, mask=mask)
     else:
         y1 = y1 + 5
         y2 = y2 - 5
         x1 = x1 + 5
         x2 = x2 - 5
-        dst = dst[x1:x2, y1:y2]
-        cv2.imwrite("dst.png", dst)
 
-    cropped_img = Image.open("dst.png")
 
+    cropped_img = Image.fromarray(dst)
+    #cropped_img = dst
+
+    cropped_img.crop((x1, y1, x2, y2))
 
     ar = scipy.misc.fromimage(cropped_img)
     dim = ar.shape
@@ -178,7 +210,6 @@ def get_color(blob):
         tertiary = get_color_name(codes[2].astype(int), secondary, colors_set)
         secondary = tertiary
     return primary, secondary
-
 
 
 
@@ -202,7 +233,7 @@ def _do_classify(blob, min_confidence):
     if confidence < min_confidence or shape == 'nas':
         return None
     else:
-        #get_alpha()
         primary, secondary = get_color(blob)
         shape = Target(blob.x, blob.y, blob.width, blob.height, shape=shape, background_color=primary, alphanumeric_color=secondary, image=blob.image, confidence=confidence)
+        #get_alpha(blob, shape)
         return shape

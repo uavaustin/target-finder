@@ -6,7 +6,7 @@ import numpy as np
 from .types import Blob
 
 
-def find_blobs(image, mask_img, min_width=20, max_length=100, limit=100, padding=10):
+def find_blobs(image, min_width=20, max_length=100, limit=100, padding=20):
     """Return the blobs found in an image.
 
     Note that by default, 100 blobs maximum will be returned, blobs
@@ -35,7 +35,7 @@ def find_blobs(image, mask_img, min_width=20, max_length=100, limit=100, padding
     # Next, we find the contours according to the threshold.
     ret, thresh = cv2.threshold(edges, 127, 255, 0)
     _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
-                                      cv2.CHAIN_APPROX_NONE)
+                                      cv2.CHAIN_APPROX_SIMPLE)
 
     blobs = []
 
@@ -44,21 +44,21 @@ def find_blobs(image, mask_img, min_width=20, max_length=100, limit=100, padding
     # and add to the list of blobs.
     for cnt in contours:
 
-        Mask = False
-
         x, y, width, height = cv2.boundingRect(np.asarray(cnt))
         area = cv2.contourArea(cnt)
         perimeter = cv2.arcLength(cnt, True)
 
         if perimeter < 3*area:
-            Mask = True
+            has_mask = True
+        else:
+            has_mask = False
 
         if (width < min_width or height < min_width or height > max_length or width > max_length): continue
 
         # Adding the blob to the list. We're not adding images yet
         # since we don't want to do that if we're not going to keep
         # the blob.
-        blobs.append(Blob(x, y, width, height, None, mask_img, Mask, cnt))
+        blobs.append(Blob(x, y, width, height, None, has_mask, cnt, edges))
 
     # Sorting the contours with the ones with the largest area first.
     blobs.sort(key=lambda b: b.width * b.height, reverse=True)

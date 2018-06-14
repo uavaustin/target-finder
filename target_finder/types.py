@@ -65,18 +65,21 @@ class Blob(object):
         width (int): The width of the blob in pixels.
         height (int): The height of the blob in pixels.
         image (PIL.Image): Image for the blob.
+        has_mask (bool): False if contour is open, true if contour is closed.
+        cnt (array): Contour associated with blob
+        edges (numpy.nparray): Edge image used for alpha classification.
     """
 
-    def __init__(self, x, y, width, height, image, mask_img, Mask, cnt=None):
+    def __init__(self, x, y, width, height, image, has_mask=False, cnt=None, edges=None):
         """Create a new Blob object."""
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.image = image
-        self.mask_img = mask_img
-        self.Mask = Mask
+        self.has_mask = has_mask
         self.cnt = cnt
+        self.edges = edges
 
 
 class Target(object):
