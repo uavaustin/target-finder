@@ -53,7 +53,11 @@ setup(
     author='Unmanned Aerial Vehicle Team | UT Austin',
     url='https://github.com/uavaustin/target-finder',
     packages=find_packages(),
-    include_package_data=True,
+    package_data={
+        'target_finder': [
+            'data/retrained_graph.pb', 'data/retrained_labels.txt'
+        ]
+    },
     install_requires=[load_requirements()],
     entry_points='''
         [console_scripts]

@@ -12,9 +12,10 @@ import os
 import scipy.cluster, scipy.misc
 import tensorflow as tf
 import webcolors
+from pkg_resources import resource_filename
 
-graph_loc="target_finder/data/retrained_graph.pb"
-labels_loc="target_finder/data/retrained_labels.txt"
+graph_loc = resource_filename(__name__, 'data/retrained_graph.pb')
+labels_loc = resource_filename(__name__, 'data/retrained_labels.txt')
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
