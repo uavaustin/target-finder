@@ -5,7 +5,7 @@ from .types import Color, Shape, Target
 import cv2
 from PIL import Image
 import numpy as np
-import pytesseract
+#import pytesseract
 import os
 import scipy.cluster, scipy.misc
 import tensorflow as tf
