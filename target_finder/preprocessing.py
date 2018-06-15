@@ -48,7 +48,7 @@ def find_blobs(image, min_width=20, max_length=100, limit=100, padding=20):
         area = cv2.contourArea(cnt)
         perimeter = cv2.arcLength(cnt, True)
 
-        if perimeter < 3*area:
+        if perimeter < 4*area:
             has_mask = True
         else:
             has_mask = False

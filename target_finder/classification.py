@@ -148,18 +148,34 @@ def get_color_name(requested_color, prev_color, colors_set):
     return min_colors[min(min_colors.keys())]
 
 def get_color(blob):
-
-    colors_set = {'#000000': None,
-                  '#000001': 'black',
-                  '#ffffff': 'white',
-                  '#407340': 'green', '#94ff94': 'green', '#00ff00': 'green', '#008004': 'green',
-                  '#525294': 'blue', '#7f7fff': 'blue', '#0000ff': 'blue', '#000087': 'blue',
-                  '#808080': 'gray',
-                  '#994c00': 'brown',
-                  '#e1dd68': 'yellow', '#fffc7a': 'yellow', '#fff700': 'yellow', '#d2cb00': 'yellow',
-                  '#d8ac53': 'orange', '#FFCC65': 'orange', '#ffa500': 'orange', '#d28c00': 'orange',
-                  '#bc3c3c': 'red', '#ff5050': 'red', '#ff0000': 'red', '#9a0000': 'red',
-                  '#800080': 'purple'}
+    colors_set = {
+        '#000000': None,
+        '#000001': Color.BLACK,
+        '#ffffff': Color.WHITE,
+        '#407340': Color.GREEN,
+        '#94ff94': Color.GREEN,
+        '#00ff00': Color.GREEN,
+        '#008004': Color.GREEN,
+        '#525294': Color.BLUE,
+        '#7f7fff': Color.BLUE,
+        '#0000ff': Color.BLUE,
+        '#000087': Color.BLUE,
+        '#808080': Color.GRAY,
+        '#994c00': Color.BROWN,
+        '#e1dd68': Color.YELLOW, 
+        '#fffc7a': Color.YELLOW,
+        '#fff700': Color.YELLOW,
+        '#d2cb00': Color.YELLOW,
+        '#d8ac53': Color.ORANGE,
+        '#FFCC65': Color.ORANGE, 
+        '#ffa500': Color.ORANGE, 
+        '#d28c00': Color.ORANGE,
+        '#bc3c3c': Color.RED, 
+        '#ff5050': Color.RED, 
+        '#ff0000': Color.RED, 
+        '#9a0000': Color.RED,
+        '#800080': Color.PURPLE
+	}
 
     mask_img = np.array(blob.image)
 
@@ -201,12 +217,12 @@ def get_color(blob):
     if len(codes) > 1:
         secondary = get_color_name(codes[1].astype(int), primary, colors_set)
     else:
-        secondary = None
+        secondary = Color.NONE
     # Ignores black mask for color detection, returns most prominent color as shape
     if primary == None:
         primary = secondary
-        secondary = None
-    if secondary == None and len(codes) > 2:
+        secondary = Color.NONE
+    if secondary == Color.NONE and len(codes) > 2:
         tertiary = get_color_name(codes[2].astype(int), secondary, colors_set)
         secondary = tertiary
     return primary, secondary
@@ -227,10 +243,10 @@ def _do_classify(blob, min_confidence):
 
     top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
 
-    shape = label_lines[top_k[0]]
+    shape = Shape[label_lines[top_k[0]]]
     confidence = predictions[0][top_k[0]]
 
-    if confidence < min_confidence or shape == 'nas':
+    if confidence < min_confidence or shape == Shape.NAS:
         return None
     else:
         primary, secondary = get_color(blob)
