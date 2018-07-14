@@ -9,11 +9,11 @@ import PIL.Image
 from .preprocessing import find_blobs
 
 
-# Creating the top level parser.
+# Create the top level parser.
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers(dest='subcommand', title='subcommands')
 
-# Making our parser for the blobs subcommand.
+# Parser for the blobs subcommand.
 blob_parser = subparsers.add_parser('blobs', help='finds the interesting '
                                                   'blobs in images')
 blob_parser.add_argument('filename', type=str, nargs='+',
@@ -42,16 +42,17 @@ def run_blobs(args):
     """Run the blobs subcommand."""
     blob_num = 0
 
-    # Making the output directory if it doesn't already exist.
+    # Create the output directory if it doesn't already exist.
     os.makedirs(args.output, exist_ok=True)
 
     for filename in _list_images(args.filename):
         image = PIL.Image.open(filename)
+        mask_img = cv2.imread(filename)
 
-        blobs = find_blobs(image, min_width=args.min_width, limit=args.limit,
-                                  padding=args.padding)
+        blobs = find_blobs(image, mask_img, min_width=args.min_width,
+                           limit=args.limit, padding=args.padding)
 
-        # Saving each blob we find with an incrementing number.
+        # Save each blob found with an incrementing number.
         for blob in blobs:
             print('Saving blob #{:06d} from {:s}'.format(blob_num, filename))
 
@@ -66,8 +67,7 @@ def _list_images(filenames):
     images = []
 
     for filename in filenames:
-        # If we're just dealing with a normal filename, add it to the
-        # list directly.
+        # If this is a normal filename, add it to the list directly.
         if os.path.isfile(filename):
             images.append(filename)
 
@@ -84,7 +84,7 @@ def _list_images(filenames):
             print('Bad filename: "{:s}".'.format(filename))
             sys.exit(1)
 
-    # We have a problem if we can't find any images.
+    # There's a problem if we can't find any images.
     if images == []:
         print('No images found.')
         sys.exit(1)
@@ -93,7 +93,6 @@ def _list_images(filenames):
 
 
 # Set the functions to run for each subcommand. If a subcommand was
-# not provided, we'll just print the usage message and set the exit
-# code to 1.
+# not provided, print the usage message and set the exit code to 1.
 blob_parser.set_defaults(func=run_blobs)
 parser.set_defaults(func=lambda _: parser.print_usage() or sys.exit(1))

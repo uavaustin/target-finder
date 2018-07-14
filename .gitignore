@@ -109,3 +109,6 @@ ENV/
 # target-finder-cli output
 /blob-*.jpg
 /target-*.jpg
+
+# target-finder model files
+/target_finder/data/
