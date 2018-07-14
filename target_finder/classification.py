@@ -1,47 +1,56 @@
 """Contains logic for finding targets in blobs."""
 
-from .preprocessing import find_blobs
-from .types import Color, Shape, Target
-import cv2
-from PIL import Image
-import numpy as np
-#import pytesseract
 import os
-import scipy.cluster, scipy.misc
-import tensorflow as tf
-import webcolors
 from pkg_resources import resource_filename
 
-graph_loc = resource_filename(__name__, 'data/retrained_graph.pb')
-labels_loc = resource_filename(__name__, 'data/retrained_labels.txt')
-#pytesseract.pytesseract.tesseract_cmd = 'C:/Program Files (x86)/Tesseract-OCR/tesseract'
+import cv2
+import numpy as np
+import os
+import PIL.Image
+import scipy.cluster
+import scipy.misc
+import tensorflow as tf
+import warnings
+import webcolors
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-#warnings.filterwarnings("ignore")
+from .preprocessing import find_blobs
+from .types import Color, Shape, Target
 
-#tf.device('/cpu:0')
 
-# Loads label file, strips off carriage return
-label_lines = [line.rstrip() for line in tf.gfile.GFile(labels_loc)]
+tf_session = None
+softmax_tensor = None
+label_lines = None
 
-# Unpersists graph from file
-with tf.gfile.FastGFile(graph_loc, 'rb') as f:
-    graph_def = tf.GraphDef()
-    graph_def.ParseFromString(f.read())
-    _ = tf.import_graph_def(graph_def, name='')
+graph_loc = resource_filename(__name__, 'data/graph.pb')
+labels_loc = resource_filename(__name__, 'data/labels.txt')
 
-#config = tf.ConfigProto(
-#    device_count = {'GPU': 0}
-#)
+# Configure if the graph and label files exist, otherwise, send a
+# warning.
+if os.path.isfile(graph_loc) and os.path.isfile(labels_loc):
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
+    # Load label file and strip off newlines.
+    label_lines = [line.rstrip() for line in tf.gfile.GFile(labels_loc)]
 
-softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
+    # Register the graph with tensorflow.
+    with tf.gfile.FastGFile(graph_loc, 'rb') as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+
+        tf.import_graph_def(graph_def, name='')
+
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+
+    tf_session = tf.Session(config=config)
+    softmax_tensor = tf_session.graph.get_tensor_by_name('final_result:0')
+else:
+    warnings.warn('Missing model files. Classification will not return any ' +
+                  'targets.')
+
 
 def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
-    """Returns the targets found in an image.
+    """Return the targets found in an image.
 
     Targets are returned in the order of highest confidence. Once the
     limit is hit, classification will stop and just take the first
@@ -66,10 +75,15 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
         List[Target]: The list of targets found.
     """
 
-    # Check that if we don't have an image passed, that the each
-    # blobs have their own image.
+    # Check that when is not an image passed, the each blob have
+    # their own image.
     if image is None and blobs is None:
         raise Exception('Blobs must be provided if an image is not.')
+
+    # If there is not a tensorflow session because of a missing graph
+    # or labels, then there's nothing to do.
+    if tf_session is None:
+        return []
 
     # If we didn't get blobs, then we'll find them.
     if blobs is None:
@@ -80,7 +94,8 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
     # Try and find a target for each blob, if it exists then register
     # it. Stop if we hit the limit.
     for blob in blobs:
-        if len(targets) == limit: break
+        if len(targets) == limit:
+            break
 
         target = _do_classify(blob, min_confidence)
 
@@ -95,59 +110,34 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
     return targets
 
 
-def get_alpha(blob, Target):
+def _do_classify(blob, min_confidence):
+    """Perform the classification on a blob.
 
-    angle = 0
-    delta_angle = 10
+    Returns None if it's not a target.
+    """
 
-    mask_img = np.array(blob.image)
+    cropped_img = blob.image
 
-    alpha_mask = np.zeros(mask_img.shape[:2], dtype='uint8')
-    cv2.drawContours(alpha_mask, blob.cnt, -1, 255, -1)
-    alphaedges = cv2.bitwise_and(blob.edges, blob.edges, mask=alpha_mask)
-    cv2.drawContours(alphaedges, blob.cnt, -1, (0,0,0), 2)
-    #width, height = dst.shape[:2]
+    image_array = cropped_img.convert('RGB')
+    predictions = tf_session.run(softmax_tensor, {'DecodeJpeg:0': image_array})
 
-    while angle < 360:
-        img = alphaedges
-        image_array = img.rotate(angle)
-        #data = pytesseract.image_to_data(image_array)
-        text = image_to_string(image_array)
-        angle += delta_angle
+    top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
 
-        if text in alphas:
-            Target.alphanumeric = text
-            Target.orientation = angle
-            break
+    shape = Shape[label_lines[top_k[0]]]
+    confidence = predictions[0][top_k[0]]
+
+    shape = None
+
+    if confidence >= min_confidence and shape != Shape.NAS:
+        primary, secondary = _get_color(blob)
+        shape = Target(blob.x, blob.y, blob.width, blob.height, shape=shape,
+                       background_color=primary, alphanumeric_color=secondary,
+                       image=blob.image, confidence=confidence)
+
+    return shape
 
 
-
-def get_color_name(requested_color, prev_color, colors_set):
-
-    color_codes = {}
-    i = 0
-
-    # Makes sure alpha color and shape color are different
-    if prev_color is not None:
-        for key, name in colors_set.items():
-            if name == prev_color:
-                color_codes[i] = key
-                i = i+1
-        for i in color_codes:
-            del colors_set[color_codes[i]]
-    min_colors = {}
-
-    # Finds closest color with a given RGB value
-    for key, name in colors_set.items():
-        r_c, g_c, b_c = webcolors.hex_to_rgb(key)
-        rd = (r_c - requested_color[0]) ** 2
-        gd = (g_c - requested_color[1]) ** 2
-        bd = (b_c - requested_color[2]) ** 2
-        min_colors[(rd + gd + bd)] = name
-
-    return min_colors[min(min_colors.keys())]
-
-def get_color(blob):
+def _get_color(blob):
     colors_set = {
         '#000000': None,
         '#000001': Color.BLACK,
@@ -162,20 +152,20 @@ def get_color(blob):
         '#000087': Color.BLUE,
         '#808080': Color.GRAY,
         '#994c00': Color.BROWN,
-        '#e1dd68': Color.YELLOW, 
+        '#e1dd68': Color.YELLOW,
         '#fffc7a': Color.YELLOW,
         '#fff700': Color.YELLOW,
         '#d2cb00': Color.YELLOW,
         '#d8ac53': Color.ORANGE,
-        '#FFCC65': Color.ORANGE, 
-        '#ffa500': Color.ORANGE, 
+        '#FFCC65': Color.ORANGE,
+        '#ffa500': Color.ORANGE,
         '#d28c00': Color.ORANGE,
-        '#bc3c3c': Color.RED, 
-        '#ff5050': Color.RED, 
-        '#ff0000': Color.RED, 
+        '#bc3c3c': Color.RED,
+        '#ff5050': Color.RED,
+        '#ff0000': Color.RED,
         '#9a0000': Color.RED,
         '#800080': Color.PURPLE
-	}
+    }
 
     mask_img = np.array(blob.image)
 
@@ -203,53 +193,55 @@ def get_color(blob):
         x1 = x1 + 5
         x2 = x2 - 5
 
-
-    cropped_img = Image.fromarray(dst)
-    #cropped_img = dst
-
+    cropped_img = PIL.Image.fromarray(dst)
     cropped_img.crop((x1, y1, x2, y2))
 
     ar = scipy.misc.fromimage(cropped_img)
     dim = ar.shape
     ar = ar.reshape(scipy.product(dim[:2]), dim[2])
     codes, dist = scipy.cluster.vq.kmeans(ar.astype(float), 3)
-    primary = get_color_name(codes[0].astype(int), None, colors_set)
+
+    primary = _get_color_name(codes[0].astype(int), None, colors_set)
+
     if len(codes) > 1:
-        secondary = get_color_name(codes[1].astype(int), primary, colors_set)
+        secondary = _get_color_name(codes[1].astype(int), primary, colors_set)
     else:
         secondary = Color.NONE
-    # Ignores black mask for color detection, returns most prominent color as shape
-    if primary == None:
+
+    # Ignore black mask for color detection, return the most
+    # prominent color as shape.
+    if primary is None:
         primary = secondary
         secondary = Color.NONE
+
     if secondary == Color.NONE and len(codes) > 2:
-        tertiary = get_color_name(codes[2].astype(int), secondary, colors_set)
+        tertiary = _get_color_name(codes[2].astype(int), secondary, colors_set)
         secondary = tertiary
+
     return primary, secondary
 
 
+def _get_color_name(requested_color, prev_color, colors_set):
+    color_codes = {}
+    i = 0
 
+    # Makes sure alpha color and shape color are different.
+    if prev_color is not None:
+        for key, name in colors_set.items():
+            if name == prev_color:
+                color_codes[i] = key
+                i = i + 1
+        for i in color_codes:
+            del colors_set[color_codes[i]]
 
-def _do_classify(blob, min_confidence):
-    """Perform the classification on a blob.
+    min_colors = {}
 
-    Returns None if it's not a target.
-    """
+    # Find closest color with a given RGB value.
+    for key, name in colors_set.items():
+        r_c, g_c, b_c = webcolors.hex_to_rgb(key)
+        rd = (r_c - requested_color[0]) ** 2
+        gd = (g_c - requested_color[1]) ** 2
+        bd = (b_c - requested_color[2]) ** 2
+        min_colors[(rd + gd + bd)] = name
 
-    cropped_img = blob.image
-
-    image_array = cropped_img.convert('RGB')
-    predictions = sess.run(softmax_tensor, {'DecodeJpeg:0': image_array})
-
-    top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
-
-    shape = Shape[label_lines[top_k[0]]]
-    confidence = predictions[0][top_k[0]]
-
-    if confidence < min_confidence or shape == Shape.NAS:
-        return None
-    else:
-        primary, secondary = get_color(blob)
-        shape = Target(blob.x, blob.y, blob.width, blob.height, shape=shape, background_color=primary, alphanumeric_color=secondary, image=blob.image, confidence=confidence)
-        #get_alpha(blob, shape)
-        return shape
+    return min_colors[min(min_colors.keys())]
