@@ -126,15 +126,15 @@ def _do_classify(blob, min_confidence):
     shape = Shape[label_lines[top_k[0]]]
     confidence = predictions[0][top_k[0]]
 
-    shape = None
+    target = None
 
     if confidence >= min_confidence and shape != Shape.NAS:
         primary, secondary = _get_color(blob)
-        shape = Target(blob.x, blob.y, blob.width, blob.height, shape=shape,
-                       background_color=primary, alphanumeric_color=secondary,
-                       image=blob.image, confidence=confidence)
+        target = Target(blob.x, blob.y, blob.width, blob.height, shape=shape,
+                        background_color=primary, alphanumeric_color=secondary,
+                        image=blob.image, confidence=confidence)
 
-    return shape
+    return target
 
 
 def _get_color(blob):
