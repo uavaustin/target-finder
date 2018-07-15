@@ -48,14 +48,14 @@ def load_requirements():
 
 
 setup(
-    name='uavaustin-target-finder',
+    name='target-finder',
     version=get_version(),
-    author='Unmanned Aerial Vehicle Team | UT Austin',
+    author='UAV Austin',
     url='https://github.com/uavaustin/target-finder',
     packages=find_packages(),
     package_data={
         'target_finder': [
-            'data/retrained_graph.pb', 'data/retrained_labels.txt'
+            'data/graph.pb', 'data/labels.txt'
         ]
     },
     install_requires=[load_requirements()],
