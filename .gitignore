@@ -112,3 +112,6 @@ ENV/
 
 # target-finder model files
 /target_finder/data/
+
+# Output from the prepare-release.sh script
+/release/
