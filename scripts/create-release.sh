@@ -14,7 +14,7 @@ version=$(grep -o -e "'.*'" "../target_finder/version.py" | tr -d "'")
 
 echo "Detected version ""$version"
 
-tf_stage_dir="../release/staging/target-finder""$version"
+tf_stage_dir="../release/staging/target-finder"
 archive_name="target-finder-""$version"".tar.gz"
 
 # Create the staging directory and the target-finder folder.
