@@ -4,6 +4,7 @@ python:
 sudo: false
 install:
     - pip install tensorflow opencv-python
+    - pip install https://github.com/uavaustin/target-finder-model/releases/download/v0.1.0/target-finder-model-0.1.0.tar.gz
     - pip install .
 script:
     - pytest test
