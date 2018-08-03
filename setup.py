@@ -43,8 +43,8 @@ setup(
     url='https://github.com/uavaustin/target-finder',
     packages=find_packages(),
     install_requires=[
-        'Pillow>=4.3.0'
-        'scipy'
+        'Pillow>=4.3.0',
+        'scipy',
         'webcolors>=1.7'
     ],
     entry_points='''
