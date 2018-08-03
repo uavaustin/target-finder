@@ -9,44 +9,35 @@ import os
 import PIL.Image
 import scipy.cluster
 import scipy.misc
+import target_finder_model
 import tensorflow as tf
-import warnings
 import webcolors
 
 from .preprocessing import find_blobs
 from .types import Color, Shape, Target
 
 
-tf_session = None
-softmax_tensor = None
-label_lines = None
+graph_loc = target_finder_model.graph_file
+labels_loc = target_finder_model.labels_file
 
-graph_loc = resource_filename(__name__, 'data/graph.pb')
-labels_loc = resource_filename(__name__, 'data/labels.txt')
+# Make Tensorflow quieter.
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-# Configure if the graph and label files exist, otherwise, send a
-# warning.
-if os.path.isfile(graph_loc) and os.path.isfile(labels_loc):
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+# Load label file and strip off newlines.
+label_lines = [line.rstrip() for line in tf.gfile.GFile(labels_loc)]
 
-    # Load label file and strip off newlines.
-    label_lines = [line.rstrip() for line in tf.gfile.GFile(labels_loc)]
+# Register the graph with tensorflow.
+with tf.gfile.FastGFile(graph_loc, 'rb') as f:
+    graph_def = tf.GraphDef()
+    graph_def.ParseFromString(f.read())
 
-    # Register the graph with tensorflow.
-    with tf.gfile.FastGFile(graph_loc, 'rb') as f:
-        graph_def = tf.GraphDef()
-        graph_def.ParseFromString(f.read())
+    tf.import_graph_def(graph_def, name='')
 
-        tf.import_graph_def(graph_def, name='')
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
 
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-
-    tf_session = tf.Session(config=config)
-    softmax_tensor = tf_session.graph.get_tensor_by_name('final_result:0')
-else:
-    warnings.warn('Missing model files. Classification will not return any ' +
-                  'targets.')
+tf_session = tf.Session(config=config)
+softmax_tensor = tf_session.graph.get_tensor_by_name('final_result:0')
 
 
 def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):

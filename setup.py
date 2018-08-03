@@ -42,11 +42,6 @@ setup(
     author='UAV Austin',
     url='https://github.com/uavaustin/target-finder',
     packages=find_packages(),
-    package_data={
-        'target_finder': [
-            'data/graph.pb', 'data/labels.txt'
-        ]
-    },
     install_requires=[
         'Pillow>=4.3.0'
         'scipy'
