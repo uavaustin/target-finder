@@ -10,22 +10,41 @@ To install from source right from GitHub, run the following:
 $ pip install git+https://github.com/uavaustin/target-finder.git
 ```
 
+Alternatively, target-finder can be fetched from GitHub Releases:
+
+```sh
+$ pip install https://github.com/uavaustin/target-finder/releases/download/v0.1.1/target-finder-0.1.1.tar.gz
+```
+
 Python 3 is required. *If `python --version` shows Python 2, then use `python3`
 and `pip3` instead.*
 
-This will not install OpenCV and Tensorflow automatically, those must be
-installed separately. Other dependencies, however, will be fetched
-automatically.
+This will not install OpenCV, Tensorflow, and target-finder-model
+automatically, those must be installed separately. Other dependencies, however,
+will be fetched automatically.
+
+### OpenCV
 
 The easiest way to install OpenCV is with `pip install opencv-python`. However,
 this [might not work on all platforms](
     https://github.com/skvark/opencv-python/issues/13).
+
+### Tensorflow
 
 To get Tensorflow, you can either run `pip install tensorflow` or
 `pip install tensorflow-gpu`. The GPU version can only be used if the
 [Tensorflow GPU requirements](
     https://www.tensorflow.org/install/install_linux#NVIDIARequirements) are
 met.
+
+### target-finder-model
+
+The model used for target-finder is packaged in target-finder-model. It can be
+installed from GitHub Releases:
+
+```sh
+$ pip install https://github.com/uavaustin/target-finder-model/releases/download/v0.1.0/target-finder-model-0.1.0.tar.gz
+```
 
 ## Command-line Interface
 
