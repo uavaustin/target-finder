@@ -1,6 +1,9 @@
 # target-finder
 
-Python library for identifying AUVSI SUAS targets.
+> Python library for identifying AUVSI SUAS targets.
+
+[![Build Status](https://travis-ci.com/uavaustin/target-finder.svg?branch=master)](https://travis-ci.com/uavaustin/target-finder)
+[![Test Coverage](https://coveralls.io/repos/github/uavaustin/target-finder/badge.svg?branch=master)](https://coveralls.io/github/uavaustin/target-finder?branch=master)
 
 ## Installation
 
@@ -53,21 +56,22 @@ in the command-line after installing for help and usage.
 
 ## Testing
 
-To run the tests you'll first need to install install pytest if it is not
-already installed: `pip install pytest`.
+The target-finder library uses [tox](https://github.com/tox-dev/tox) to manage
+its tests.
 
-The OpenCV and Tensorflow depenedencies must also be installed per the
-installation instructions.
+To run the tests, first install tox.
 
-Before running the tests, you'll need to install the target-finder library with
-`pip`. The best way to do it is with the `-e` flag so you can make changes to
-the library without needing to reinstall each time you edit a file. Afterwards,
-just use `pytest` to run the tests.
-
+```sh
+$ pip install tox
 ```
-# Should only need to do this once.
-$ pip install -e .
 
-# Run the test suite.
-$ pytest
+Now unit tests can be run by simply calling:
+
+```sh
+$ tox
 ```
+
+This will take care of installing the "standard" opencv-python, target-finder,
+and target-finder-model packages. Note that this may not work out-of-the-box
+on all systems. The tests can be run manually by fetching the test dependencies
+needed (see `tox.ini`) and run with `pytest`.

@@ -1,14 +1,17 @@
 language: python
 python:
-    - '3.6'
+  - '3.6'
 sudo: false
 install:
-    - pip install tensorflow opencv-python
-    - pip install https://github.com/uavaustin/target-finder-model/releases/download/v0.1.0/target-finder-model-0.1.0.tar.gz
-    - pip install .
+  - pip install tensorflow opencv-python
+  - pip install https://github.com/uavaustin/target-finder-model/releases/download/v0.1.0/target-finder-model-0.1.0.tar.gz
+  - pip install tox-travis coveralls
+  - pip install .
 script:
-    - pytest test
+  - tox
+after_success:
+  - coveralls
 notifications:
-    email: false
-    slack:
-        secure: mm/9QzG87Qw12ga9qOEzo5pmG+jwAwGERblfj3AxfRlUhFIitSxr6Ml65mC2vn21fm6hEp5WYMOTAUcqRqKvjpiewQqFQ4ZLaMtRomtkF5QkU5kHLPUXhsRUaW4qWMrrand1iM50OJN2UpIascp4rDgUSbi6WYly7rGwegqRObrarp38Hgma5ATOcqRgfUwn1gJSwe2Gu8yjhLE1uZwX3GLh04HNeC2Dec7x0YKn2BEEzG/f/1JNd8Bi3z3fja8V72Q4QHzgR3Tjv1ofqGTDDUXcXlONLfPjSVhqcsMaMemmAfSAhDYl9WEZe1glGP1OGvtRkA5NMLx22DgsztHzZz/Nk/5KXuubLpNXdA3fGQUlQnAk9tPJL7CU7fSRN6Xxe8NlCcb4Eg+c7XbuKETl9MK6msb7pFKydCKTwr6tHgjiw7gVOjbdHPIUxEArpSojLGncuv8xO0iqS51NvzRjFrMDm9xlvf3pNN2RbtqpI9Wc+AOm+MxVybdPgc8xjml+YfuHaQn0fl6elyWszJWCWOCAUDhKbi7aYzqaCzL45fywTCaD4S5HWa+EmzQGxizH4bvG6B/K7PKmF3H0FGV12y9Nh3t62XXx08PJtPBs363j/A6oDTmUKXQ3CS4T916PfzgIO6DNiQpX8xq1uPFyq/TaNUL3InkT3iw+cfufI+8=
+  email: false
+  slack:
+    secure: mm/9QzG87Qw12ga9qOEzo5pmG+jwAwGERblfj3AxfRlUhFIitSxr6Ml65mC2vn21fm6hEp5WYMOTAUcqRqKvjpiewQqFQ4ZLaMtRomtkF5QkU5kHLPUXhsRUaW4qWMrrand1iM50OJN2UpIascp4rDgUSbi6WYly7rGwegqRObrarp38Hgma5ATOcqRgfUwn1gJSwe2Gu8yjhLE1uZwX3GLh04HNeC2Dec7x0YKn2BEEzG/f/1JNd8Bi3z3fja8V72Q4QHzgR3Tjv1ofqGTDDUXcXlONLfPjSVhqcsMaMemmAfSAhDYl9WEZe1glGP1OGvtRkA5NMLx22DgsztHzZz/Nk/5KXuubLpNXdA3fGQUlQnAk9tPJL7CU7fSRN6Xxe8NlCcb4Eg+c7XbuKETl9MK6msb7pFKydCKTwr6tHgjiw7gVOjbdHPIUxEArpSojLGncuv8xO0iqS51NvzRjFrMDm9xlvf3pNN2RbtqpI9Wc+AOm+MxVybdPgc8xjml+YfuHaQn0fl6elyWszJWCWOCAUDhKbi7aYzqaCzL45fywTCaD4S5HWa+EmzQGxizH4bvG6B/K7PKmF3H0FGV12y9Nh3t62XXx08PJtPBs363j/A6oDTmUKXQ3CS4T916PfzgIO6DNiQpX8xq1uPFyq/TaNUL3InkT3iw+cfufI+8=
