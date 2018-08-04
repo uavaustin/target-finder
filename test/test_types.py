@@ -30,7 +30,7 @@ def test_basic_target():
     assert t.background_color == Color.NONE
     assert t.alphanumeric == ''
     assert t.alphanumeric_color == Color.NONE
-    assert t.image == None
+    assert t.image is None
     assert t.confidence == 0.0
 
 
