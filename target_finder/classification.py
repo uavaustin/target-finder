@@ -58,7 +58,7 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
             find_blobs() will be called prior to classification.
             Default is None.
         min_confidence (float, optional): Confidence threshold to
-            use (0 <= confidence <= 1). Default is 0.95.
+            use (0 <= confidence <= 1). Default is 0.85.
         limit (int, optional): The maximum number of targets to
             return.
 
