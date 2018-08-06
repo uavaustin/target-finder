@@ -50,9 +50,8 @@ def run_blobs(args):
 
     for filename in _list_images(args.filename):
         image = PIL.Image.open(filename)
-        mask_img = cv2.imread(filename)
 
-        blobs = find_blobs(image, mask_img, min_width=args.min_width,
+        blobs = find_blobs(image, min_width=args.min_width,
                            max_width=args.max_width, limit=args.limit,
                            padding=args.padding)
 
