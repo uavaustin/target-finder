@@ -6,7 +6,7 @@ import numpy as np
 from .types import Blob
 
 
-def find_blobs(image, min_width=20, max_length=100, limit=100, padding=20):
+def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
     """Return the blobs found in an image.
 
     Note that by default, 100 blobs maximum will be returned, blobs
@@ -14,12 +14,15 @@ def find_blobs(image, min_width=20, max_length=100, limit=100, padding=20):
 
     Args:
         image (PIL.Image): Image to find blobs in.
-        padding (int, optional): Padding to use on each side when
-            cropping. Note that padding will stop if the cropped
-            image hits the image boundaries. Defaults to 10 pixels.
         min_width (int, optional): The minimum width of a blob in the
             x and y direction. Defaults to 20 pixels.
+        max_widht (int, optional): The maximum width of a blob in the
+            x and y direction. Defaults to 100 pixels.
         limit (int, optional): The maximum number of blobs to return.
+            Defaults to 100.
+        padding (int, optional): Padding to use on each side when
+            cropping. Note that padding will stop if the cropped
+            image hits the image boundaries. Defaults to 20 pixels.
 
     Returns:
         List[Blob]: The list of blobs found.
@@ -50,7 +53,7 @@ def find_blobs(image, min_width=20, max_length=100, limit=100, padding=20):
             has_mask = False
 
         if (width < min_width or height < min_width or height >
-                max_length or width > max_length):
+                max_width or width > max_width):
             continue
 
         # Add the blob to the list without the image.

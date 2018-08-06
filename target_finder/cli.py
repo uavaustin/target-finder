@@ -24,12 +24,15 @@ blob_parser.add_argument('-o', '--output', type=str, action='store',
 blob_parser.add_argument('--min-width', type=int, action='store', default=20,
                          help='minimum width a blob must be in the horizontal '
                               'and vertical directions (default: 20)')
+blob_parser.add_argument('--max-width', type=int, action='store', default=100,
+                         help='maximum width a blob can be in the horizontal '
+                              'and vertical directions (default: 100)')
 blob_parser.add_argument('--limit', type=int, dest='limit', action='store',
                          default=100, help='maximum number of blobs to find '
                                            'per image (default: 100)')
-blob_parser.add_argument('--padding', type=int, action='store', default=10,
+blob_parser.add_argument('--padding', type=int, action='store', default=20,
                          help='how much space to leave around blobs on each '
-                              'side (default: 10)')
+                              'side (default: 20 pixels)')
 
 
 def run():
@@ -50,7 +53,8 @@ def run_blobs(args):
         mask_img = cv2.imread(filename)
 
         blobs = find_blobs(image, mask_img, min_width=args.min_width,
-                           limit=args.limit, padding=args.padding)
+                           max_width=args.max_width, limit=args.limit,
+                           padding=args.padding)
 
         # Save each blob found with an incrementing number.
         for blob in blobs:
