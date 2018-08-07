@@ -70,7 +70,8 @@ class Blob(object):
         edges (numpy.nparray): Edge image used for alpha classification.
     """
 
-    def __init__(self, x, y, width, height, image, has_mask=False, cnt=None, edges=None):
+    def __init__(self, x, y, width, height, image, has_mask=False, cnt=None,
+                 edges=None):
         """Create a new Blob object."""
         self.x = x
         self.y = y
