@@ -115,7 +115,7 @@ def _do_classify(blob, min_confidence):
     top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
 
     shape = Shape[label_lines[top_k[0]]]
-    confidence = predictions[0][top_k[0]]
+    confidence = float(predictions[0][top_k[0]])
 
     target = None
 
