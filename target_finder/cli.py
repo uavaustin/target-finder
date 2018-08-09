@@ -51,9 +51,10 @@ target_parser.add_argument('--limit', type=int, dest='limit', action='store',
                            default=10, help='maximum number of blobs to find '
                                             'per image (default: 10)')
 
-def run():
+
+def run(args=None):
     """Dispatch the correct subcommand."""
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     args.func(args)
 
 
