@@ -19,9 +19,6 @@ mkdir -p "$tf_stage_dir""/target_finder"
 find "../target_finder/" -name "*.py" -exec cp '{}' \
   "$tf_stage_dir/target_finder/" \;
 
-# Copy over the graph and labels.
-mkdir -p "$tf_stage_dir""/target_finder/data"
-
 # Copy over configuration and informational files.
 cp ../README.md ../LICENSE ../CHANGELOG.md ../setup.py "$tf_stage_dir"
 
