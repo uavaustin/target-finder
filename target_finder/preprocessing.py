@@ -16,7 +16,7 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
         image (PIL.Image): Image to find blobs in.
         min_width (int, optional): The minimum width of a blob in the
             x and y direction. Defaults to 20 pixels.
-        max_widht (int, optional): The maximum width of a blob in the
+        max_width (int, optional): The maximum width of a blob in the
             x and y direction. Defaults to 100 pixels.
         limit (int, optional): The maximum number of blobs to return.
             Defaults to 100.
