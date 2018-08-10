@@ -9,6 +9,16 @@ script:
   - tox
 after_success:
   - coveralls
+before_deploy:
+  - ./scripts/create-release.sh
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file_glob: true
+  file: release/*
+  skip_cleanup: true
+  on:
+    tags: true
 notifications:
   email: false
   slack:
