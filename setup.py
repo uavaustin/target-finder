@@ -20,7 +20,6 @@ def join(*paths):
 
 
 VERSION_PATH = join(__file__, '..', 'target_finder', 'version.py')
-REQUIREMENTS_PATH = join(__file__, '..', 'requirements.txt')
 
 
 def get_version():
@@ -37,28 +36,17 @@ def get_version():
         return out['__version__']
 
 
-def load_requirements():
-    """Get the requirements file in this directory.
-    Returns:
-        List[str]: A list of pip readable strings.
-    """
-
-    with open(REQUIREMENTS_PATH, 'r') as requirements:
-        return requirements.read().split('\n')
-
-
 setup(
     name='target-finder',
     version=get_version(),
     author='UAV Austin',
     url='https://github.com/uavaustin/target-finder',
     packages=find_packages(),
-    package_data={
-        'target_finder': [
-            'data/graph.pb', 'data/labels.txt'
-        ]
-    },
-    install_requires=[load_requirements()],
+    install_requires=[
+        'Pillow>=4.3.0',
+        'scipy',
+        'webcolors>=1.7'
+    ],
     entry_points='''
         [console_scripts]
         target-finder-cli=target_finder.cli:run
