@@ -185,10 +185,10 @@ def _get_color(blob, padding=20):
     dist_a = np.sum(np.square(valid_colors[:] - color_a), axis=1)
     dist_b = np.sum(np.square(valid_colors[:] - color_b), axis=1)
 
-    pixels_a_color = np.sum(dist_a[:] > dist_b[:]) # num pixels 'a' color
-    total_pixels = valid_colors.shape[0]
+    pixels_a_color = np.sum(dist_a[:] < dist_b[:]) # num pixels 'a' color
+    pixels_b_color = np.sum(dist_a[:] > dist_b[:]) # num pixels 'b' color
 
-    if pixels_a_color > (total_pixels / 2): # this assumes the shape will have more pixels in target than alphanum
+    if pixels_a_color > pixels_b_color: # this assumes the shape will have more pixels than alphanum
         primary = _get_color_name(color_a.astype(int), None, colors_set)
         secondary = _get_color_name(color_b.astype(int), primary, colors_set)
     else:
