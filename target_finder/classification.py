@@ -128,7 +128,8 @@ def _do_classify(blob, min_confidence):
     return target
 
 
-def _get_color(blob):
+def _get_color(blob, padding=20):
+
     colors_set = {
         '#000000': None,
         '#000001': Color.BLACK,
@@ -158,56 +159,41 @@ def _get_color(blob):
         '#800080': Color.PURPLE
     }
 
-    mask_img = np.array(blob.image)
+    mask_img = np.array(blob.image) # the image w/the mask applied
 
-    dst = mask_img
-    width, height = dst.shape[:2]
+    width, height = mask_img.shape[:2]
 
-    if width > height:
-        y1 = blob.y
-        y2 = blob.y + blob.height
-        x1 = blob.x
-        x2 = blob.x + blob.width
+    mask = np.zeros(mask_img.shape[:2], dtype='uint8') # the mask itself
+
+     # fix the cnt
+    real_cnt = np.array(blob.cnt)
+    real_cnt[:,:,0] -= blob.x - padding
+    real_cnt[:,:,1] -= blob.y - padding
+
+    # apply the mask
+    cv2.drawContours(mask, [real_cnt], -1, 255, -1)
+    masked_image = cv2.bitwise_and(mask_img, mask_img, mask=mask)
+
+    # extract pixels in blob
+    mask_x, mask_y = np.nonzero(mask)
+    valid_colors = masked_image[mask_x, mask_y].astype(np.float)
+
+    # Get the two average colors
+    (color_a, color_b), dist = scipy.cluster.vq.kmeans(valid_colors, 2)
+
+    # find the dist between each pixel and the 2 colors
+    dist_a = np.sum(np.square(valid_colors[:] - color_a), axis=1)
+    dist_b = np.sum(np.square(valid_colors[:] - color_b), axis=1)
+
+    pixels_a_color = np.sum(dist_a[:] > dist_b[:]) # num pixels 'a' color
+    total_pixels = valid_colors.shape[0]
+
+    if pixels_a_color > (total_pixels / 2): # this assumes the shape will have more pixels in target than alphanum
+        primary = _get_color_name(color_a.astype(int), None, colors_set)
+        secondary = _get_color_name(color_b.astype(int), primary, colors_set)
     else:
-        x1 = blob.y
-        x2 = blob.y + blob.height
-        y1 = blob.x
-        y2 = blob.x + blob.width
-
-    if blob.has_mask:
-        mask = np.zeros(mask_img.shape[:2], dtype='uint8')
-        cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
-        dst = cv2.bitwise_and(mask_img, mask_img, mask=mask)
-    else:
-        y1 = y1 + 5
-        y2 = y2 - 5
-        x1 = x1 + 5
-        x2 = x2 - 5
-
-    cropped_img = PIL.Image.fromarray(dst)
-    cropped_img.crop((x1, y1, x2, y2))
-
-    ar = scipy.misc.fromimage(cropped_img)
-    dim = ar.shape
-    ar = ar.reshape(scipy.product(dim[:2]), dim[2])
-    codes, dist = scipy.cluster.vq.kmeans(ar.astype(float), 3)
-
-    primary = _get_color_name(codes[0].astype(int), None, colors_set)
-
-    if len(codes) > 1:
-        secondary = _get_color_name(codes[1].astype(int), primary, colors_set)
-    else:
-        secondary = Color.NONE
-
-    # Ignore black mask for color detection, return the most
-    # prominent color as shape.
-    if primary is None:
-        primary = secondary
-        secondary = Color.NONE
-
-    if secondary == Color.NONE and len(codes) > 2:
-        tertiary = _get_color_name(codes[2].astype(int), secondary, colors_set)
-        secondary = tertiary
+        primary = _get_color_name(color_b.astype(int), None, colors_set)
+        secondary = _get_color_name(color_a.astype(int), primary, colors_set)
 
     return primary, secondary
 
