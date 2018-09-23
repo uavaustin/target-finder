@@ -82,6 +82,12 @@ class Blob(object):
         self.cnt = cnt
         self.edges = edges
 
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return f'Blob(pos=({self.x}, {self.y}), width={self.width}, height={self.height}, has_mask={self.has_mask})'
+
 
 class Target(object):
     """Represents a target found on an image.
@@ -131,3 +137,12 @@ class Target(object):
         self.alphanumeric_color = alphanumeric_color
         self.image = image
         self.confidence = confidence
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return (f'Target(pos=({self.x}, {self.y}), width={self.width}, height={self.height}, ' +
+                    f'orientation={self.orientation}, confidence={round(self.confidence, 2)}, ' +
+                    f'shape={self.shape}, color={self.background_color}, ' +
+                    f'alphanumeric={self.alphanumeric}, alphanumeric_color={self.alphanumeric_color})')
