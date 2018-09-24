@@ -16,6 +16,7 @@ def test_blob():
     assert b.width == 20
     assert b.height == 30
     assert b.image == image
+    assert str(b) == "Blob(x=100, y=200, width=20, height=30, has_mask=False)"
 
 
 def test_basic_target():
@@ -32,6 +33,7 @@ def test_basic_target():
     assert t.alphanumeric_color == Color.NONE
     assert t.image is None
     assert t.confidence == 0.0
+    assert str(t) == "Target(x=2, y=4, width=5, height=8, orientation=0.0, confidence=0.0, shape=Shape.NAS, color=Color.NONE, alphanumeric=, alphanumeric_color=Color.NONE)"
 
 
 def test_target_with_optionals():
@@ -52,3 +54,4 @@ def test_target_with_optionals():
     assert t.alphanumeric_color == Color.WHITE
     assert t.image == image
     assert t.confidence == 0.97
+    assert str(t) == "Target(x=3, y=5, width=7, height=9, orientation=74.3, confidence=0.97, shape=Shape.SQUARE, color=Color.GREEN, alphanumeric=A, alphanumeric_color=Color.WHITE)"
