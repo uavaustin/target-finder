@@ -145,4 +145,4 @@ class Target(object):
         return (f'Target(x={self.x}, y={self.y}, width={self.width}, height={self.height}, ' +
                     f'orientation={self.orientation}, confidence={round(self.confidence, 2)}, ' +
                     f'shape={self.shape}, color={self.background_color}, ' +
-                    f'alphanumeric={self.alphanumeric}, alphanumeric_color={self.alphanumeric_color})')
+                    f'alphanumeric={repr(self.alphanumeric)}, alphanumeric_color={self.alphanumeric_color})')
