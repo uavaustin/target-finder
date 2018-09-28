@@ -86,7 +86,10 @@ class Blob(object):
         return str(self)
 
     def __str__(self):
-        return f'Blob(x={self.x}, y={self.y}, width={self.width}, height={self.height}, has_mask={self.has_mask})'
+        return (
+            f'Blob(x={self.x}, y={self.y}, width={self.width}, '
+            f'height={self.height}, image=None, has_mask={self.has_mask})'
+        )
 
 
 class Target(object):
@@ -142,7 +145,11 @@ class Target(object):
         return str(self)
 
     def __str__(self):
-        return (f'Target(x={self.x}, y={self.y}, width={self.width}, height={self.height}, ' +
-                    f'orientation={self.orientation}, confidence={round(self.confidence, 2)}, ' +
-                    f'shape={self.shape}, color={self.background_color}, ' +
-                    f'alphanumeric={repr(self.alphanumeric)}, alphanumeric_color={self.alphanumeric_color})')
+        return (
+            f'Target(x={self.x}, y={self.y}, width={self.width}, '
+            f'height={self.height}, orientation={self.orientation}, '
+            f'confidence={round(self.confidence, 2)}, shape={self.shape}, '
+            f'background_color={self.background_color}, '
+            f'alphanumeric={repr(self.alphanumeric)}, '
+            f'alphanumeric_color={self.alphanumeric_color})'
+        )
