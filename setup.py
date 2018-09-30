@@ -45,7 +45,8 @@ setup(
     install_requires=[
         'Pillow>=4.3.0',
         'scipy',
-        'webcolors>=1.7'
+        'webcolors>=1.7',
+        'scikit-learn'
     ],
     entry_points='''
         [console_scripts]
