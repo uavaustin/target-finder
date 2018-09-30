@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import os
 import PIL.Image
-import scipy.cluster
+import sklearn.cluster
 import scipy.misc
 import target_finder_model
 import tensorflow as tf
@@ -128,7 +128,7 @@ def _do_classify(blob, min_confidence):
     return target
 
 
-def _get_color(blob, padding=20):
+def _get_color(blob):
 
     colors_set = {
         '#000000': None,
@@ -159,44 +159,53 @@ def _get_color(blob, padding=20):
         '#800080': Color.PURPLE
     }
 
-    mask_img = np.array(blob.image) # the image w/the mask applied
+    (color_a, count_a), (color_b, count_b) = _find_main_colors(blob)
 
-    width, height = mask_img.shape[:2]
+    if count_a > count_b: # this assumes the shape will have more pixels than alphanum
+        primary = _get_color_name(color_a, None, colors_set)
+        secondary = _get_color_name(color_b, primary, colors_set)
+    else:
+        primary = _get_color_name(color_b, None, colors_set)
+        secondary = _get_color_name(color_a, primary, colors_set)
+
+    return primary, secondary
+
+def _find_main_colors(blob):
+
+    mask_img = np.array(blob.image) # the image w/the mask applied
 
     mask = np.zeros(mask_img.shape[:2], dtype='uint8') # the mask itself
 
-     # fix the cnt
+     # fix the contour by removing padding
+    padding = 0 # TODO fix, since this wont be zero
     real_cnt = np.array(blob.cnt)
     real_cnt[:,:,0] -= blob.x - padding
     real_cnt[:,:,1] -= blob.y - padding
 
-    # apply the mask
+    # create mask
     cv2.drawContours(mask, [real_cnt], -1, 255, -1)
+
+    # apply mask
     masked_image = cv2.bitwise_and(mask_img, mask_img, mask=mask)
 
-    # extract pixels in blob
+    # extract colors from region within mask
     mask_x, mask_y = np.nonzero(mask)
     valid_colors = masked_image[mask_x, mask_y].astype(np.float)
 
     # Get the two average colors
-    (color_a, color_b), dist = scipy.cluster.vq.kmeans(valid_colors, 2)
+    algo = sklearn.cluster.AgglomerativeClustering(n_clusters=2)
+    algo.fit(valid_colors)
+    colors = algo.labels_
+    all_a = valid_colors[colors == 1]
+    all_b = valid_colors[colors == 0]
 
-    # find the dist between each pixel and the 2 colors
-    dist_a = np.sum(np.square(valid_colors[:] - color_a), axis=1)
-    dist_b = np.sum(np.square(valid_colors[:] - color_b), axis=1)
+    # extract colors from prediction
+    color_a = np.mean(all_a, axis=0)
+    count_a = all_a.shape[0]
+    color_b = np.mean(all_b, axis=0)
+    count_b = all_b.shape[0]
 
-    pixels_a_color = np.sum(dist_a[:] < dist_b[:]) # num pixels 'a' color
-    pixels_b_color = np.sum(dist_a[:] > dist_b[:]) # num pixels 'b' color
-
-    if pixels_a_color > pixels_b_color: # this assumes the shape will have more pixels than alphanum
-        primary = _get_color_name(color_a.astype(int), None, colors_set)
-        secondary = _get_color_name(color_b.astype(int), primary, colors_set)
-    else:
-        primary = _get_color_name(color_b.astype(int), None, colors_set)
-        secondary = _get_color_name(color_a.astype(int), primary, colors_set)
-
-    return primary, secondary
-
+    return (color_a, count_a), (color_b, count_b)
 
 def _get_color_name(requested_color, prev_color, colors_set):
     color_codes = {}
