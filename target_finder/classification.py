@@ -16,7 +16,6 @@ import webcolors
 from .preprocessing import find_blobs
 from .types import Color, Shape, Target
 
-
 graph_loc = target_finder_model.graph_file
 labels_loc = target_finder_model.labels_file
 
@@ -158,6 +157,16 @@ def _get_color(blob):
         '#800080': Color.PURPLE
     }
 
+    #Color ranges for HSV
+    color_ranges = {
+        '15': Color.RED,
+        '50': Color.ORANGE,
+        '66': Color.YELLOW,
+        '155': Color.GREEN,
+        '265': Color.BLUE,
+        '299': Color.PURPLE,
+        '360': Color.RED
+    }
     mask_img = np.array(blob.image)
 
     dst = mask_img
@@ -229,10 +238,44 @@ def _get_color_name(requested_color, prev_color, colors_set):
 
     # Find closest color with a given RGB value.
     for key, name in colors_set.items():
-        r_c, g_c, b_c = webcolors.hex_to_rgb(key)
-        rd = (r_c - requested_color[0]) ** 2
-        gd = (g_c - requested_color[1]) ** 2
-        bd = (b_c - requested_color[2]) ** 2
-        min_colors[(rd + gd + bd)] = name
-
+        get_hsv(key)
     return min_colors[min(min_colors.keys())]
+
+
+def get_hsv(color, color_ranges):
+    """
+    Converts RGB to HSV value
+    :param color: takes in a hex code
+    :return: HSV value
+    """
+    r0, g0, b0 = webcolors.hex_to_rgb(color)
+    r = r0 / 255
+    g = g0 / 255
+    b = b0 / 255
+    c_max = max(r, g, b)
+    c_min = min(r, g, b)
+    delta = c_max - c_min
+
+    h = 0
+    s = 0
+    v = 0
+    if delta == 0:
+        h = 0
+    elif c_max == r:
+        h = 60 * (((g - b) / delta) % 6)
+    elif c_max == g:
+        h = 60 * (((b - r) / delta) + 2)
+    elif c_max == b:
+        h = 60 * (((r - g) / delta) + 4)
+
+    if c_max == 0:
+        s = 0
+    else:
+        s = delta / c_max
+
+    v = c_max
+
+    #Checking if it matches any color
+    for key in color_ranges:
+
+    return h, s, v
