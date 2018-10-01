@@ -16,8 +16,7 @@ def test_blob():
     assert b.width == 20
     assert b.height == 30
     assert b.image == image
-    assert str(b) == "Blob(x=100, y=200, width=20, height=30, image=None, " + \
-                     "has_mask=False)"
+    assert str(b) == "Blob(x=100, y=200, width=20, height=30, has_mask=False)"
     assert repr(eval(repr(b))) == repr(b)
 
 
