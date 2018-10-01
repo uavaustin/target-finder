@@ -70,8 +70,8 @@ class Blob(object):
         edges (numpy.nparray): Edge image used for alpha classification.
     """
 
-    def __init__(self, x, y, width, height, image, has_mask=False, cnt=None,
-                 edges=None):
+    def __init__(self, x, y, width, height, image=None, has_mask=False,
+                 cnt=None, edges=None):
         """Create a new Blob object."""
         self.x = x
         self.y = y
@@ -81,6 +81,15 @@ class Blob(object):
         self.has_mask = has_mask
         self.cnt = cnt
         self.edges = edges
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return (
+            f'Blob(x={self.x}, y={self.y}, width={self.width}, '
+            f'height={self.height}, has_mask={self.has_mask})'
+        )
 
 
 class Target(object):
@@ -131,3 +140,16 @@ class Target(object):
         self.alphanumeric_color = alphanumeric_color
         self.image = image
         self.confidence = confidence
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return (
+            f'Target(x={self.x}, y={self.y}, width={self.width}, '
+            f'height={self.height}, orientation={self.orientation}, '
+            f'confidence={round(self.confidence, 2)}, shape={self.shape}, '
+            f'background_color={self.background_color}, '
+            f'alphanumeric={repr(self.alphanumeric)}, '
+            f'alphanumeric_color={self.alphanumeric_color})'
+        )
