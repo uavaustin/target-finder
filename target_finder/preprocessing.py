@@ -58,12 +58,12 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
             continue
 
         # align the contour with the cropped image
-        relative_cnt = np.array(cnt)
-        relative_cnt[:,:,0] -= max(x - padding, 0)
-        relative_cnt[:,:,1] -= max(y - padding, 0)
+        rel_cnt = np.array(cnt)
+        rel_cnt[:, :, 0] -= max(x - padding, 0)
+        rel_cnt[:, :, 1] -= max(y - padding, 0)
 
         # Add the blob to the list without the image.
-        blobs.append(Blob(x, y, width, height, None, has_mask, relative_cnt, edges))
+        blobs.append(Blob(x, y, width, height, None, has_mask, rel_cnt, edges))
 
     # Sort the contours with the largest area first.
     blobs.sort(key=lambda b: b.width * b.height, reverse=True)

@@ -161,7 +161,8 @@ def _get_color(blob):
 
     (color_a, count_a), (color_b, count_b) = _find_main_colors(blob)
 
-    if count_a > count_b: # this assumes the shape will have more pixels than alphanum
+    # this assumes the shape will have more pixels than alphanum
+    if count_a > count_b:
         primary = _get_color_name(color_a, None, colors_set)
         secondary = _get_color_name(color_b, primary, colors_set)
     else:
@@ -170,11 +171,12 @@ def _get_color(blob):
 
     return primary, secondary
 
+
 def _find_main_colors(blob):
 
-    mask_img = np.array(blob.image) # the image w/the mask applied
+    mask_img = np.array(blob.image)  # the image w/the mask applied
 
-    mask = np.zeros(mask_img.shape[:2], dtype='uint8') # the mask itself
+    mask = np.zeros(mask_img.shape[:2], dtype='uint8')  # the mask itself
 
     # create mask
     cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
@@ -200,6 +202,7 @@ def _find_main_colors(blob):
     count_b = all_b.shape[0]
 
     return (color_a, count_a), (color_b, count_b)
+
 
 def _get_color_name(requested_color, prev_color, colors_set):
     color_codes = {}
