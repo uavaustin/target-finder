@@ -176,14 +176,8 @@ def _find_main_colors(blob):
 
     mask = np.zeros(mask_img.shape[:2], dtype='uint8') # the mask itself
 
-     # fix the contour by removing padding
-    padding = 0 # TODO fix, since this wont be zero
-    real_cnt = np.array(blob.cnt)
-    real_cnt[:,:,0] -= blob.x - padding
-    real_cnt[:,:,1] -= blob.y - padding
-
     # create mask
-    cv2.drawContours(mask, [real_cnt], -1, 255, -1)
+    cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
 
     # apply mask
     masked_image = cv2.bitwise_and(mask_img, mask_img, mask=mask)
