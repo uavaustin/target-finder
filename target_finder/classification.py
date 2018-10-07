@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import os
 import PIL.Image
-import scipy.cluster
+import sklearn.cluster
 import scipy.misc
 import target_finder_model
 import tensorflow as tf
@@ -129,6 +129,7 @@ def _do_classify(blob, min_confidence):
 
 
 def _get_color(blob):
+
     colors_set = {
         '#000000': None,
         '#000001': Color.BLACK,
@@ -158,58 +159,49 @@ def _get_color(blob):
         '#800080': Color.PURPLE
     }
 
-    mask_img = np.array(blob.image)
+    (color_a, count_a), (color_b, count_b) = _find_main_colors(blob)
 
-    dst = mask_img
-    width, height = dst.shape[:2]
-
-    if width > height:
-        y1 = blob.y
-        y2 = blob.y + blob.height
-        x1 = blob.x
-        x2 = blob.x + blob.width
+    # this assumes the shape will have more pixels than alphanum
+    if count_a > count_b:
+        primary = _get_color_name(color_a, None, colors_set)
+        secondary = _get_color_name(color_b, primary, colors_set)
     else:
-        x1 = blob.y
-        x2 = blob.y + blob.height
-        y1 = blob.x
-        y2 = blob.x + blob.width
-
-    if blob.has_mask:
-        mask = np.zeros(mask_img.shape[:2], dtype='uint8')
-        cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
-        dst = cv2.bitwise_and(mask_img, mask_img, mask=mask)
-    else:
-        y1 = y1 + 5
-        y2 = y2 - 5
-        x1 = x1 + 5
-        x2 = x2 - 5
-
-    cropped_img = PIL.Image.fromarray(dst)
-    cropped_img.crop((x1, y1, x2, y2))
-
-    ar = scipy.misc.fromimage(cropped_img)
-    dim = ar.shape
-    ar = ar.reshape(scipy.product(dim[:2]), dim[2])
-    codes, dist = scipy.cluster.vq.kmeans(ar.astype(float), 3)
-
-    primary = _get_color_name(codes[0].astype(int), None, colors_set)
-
-    if len(codes) > 1:
-        secondary = _get_color_name(codes[1].astype(int), primary, colors_set)
-    else:
-        secondary = Color.NONE
-
-    # Ignore black mask for color detection, return the most
-    # prominent color as shape.
-    if primary is None:
-        primary = secondary
-        secondary = Color.NONE
-
-    if secondary == Color.NONE and len(codes) > 2:
-        tertiary = _get_color_name(codes[2].astype(int), secondary, colors_set)
-        secondary = tertiary
+        primary = _get_color_name(color_b, None, colors_set)
+        secondary = _get_color_name(color_a, primary, colors_set)
 
     return primary, secondary
+
+
+def _find_main_colors(blob):
+
+    mask_img = np.array(blob.image)  # the image w/the mask applied
+
+    mask = np.zeros(mask_img.shape[:2], dtype='uint8')  # the mask itself
+
+    # create mask
+    cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
+
+    # apply mask
+    masked_image = cv2.bitwise_and(mask_img, mask_img, mask=mask)
+
+    # extract colors from region within mask
+    mask_x, mask_y = np.nonzero(mask)
+    valid_colors = masked_image[mask_x, mask_y].astype(np.float)
+
+    # Get the two average colors
+    algo = sklearn.cluster.AgglomerativeClustering(n_clusters=2)
+    algo.fit(valid_colors)
+    colors = algo.labels_
+    all_a = valid_colors[colors == 1]
+    all_b = valid_colors[colors == 0]
+
+    # extract colors from prediction
+    color_a = np.mean(all_a, axis=0)
+    count_a = all_a.shape[0]
+    color_b = np.mean(all_b, axis=0)
+    count_b = all_b.shape[0]
+
+    return (color_a, count_a), (color_b, count_b)
 
 
 def _get_color_name(requested_color, prev_color, colors_set):
