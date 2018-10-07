@@ -109,6 +109,8 @@ def _do_classify(blob, min_confidence):
 
     cropped_img = blob.image
 
+    primary, secondary, alpha_img = _get_color(blob)
+
     image_array = cropped_img.convert('RGB')
     predictions = tf_session.run(softmax_tensor, {'DecodeJpeg:0': image_array})
 
@@ -120,7 +122,7 @@ def _do_classify(blob, min_confidence):
     target = None
 
     if confidence >= min_confidence and shape != Shape.NAS:
-        primary, secondary = _get_color(blob)
+
         target = Target(blob.x, blob.y, blob.width, blob.height, shape=shape,
                         background_color=primary, alphanumeric_color=secondary,
                         image=blob.image, confidence=confidence)
@@ -165,11 +167,45 @@ def _get_color(blob):
     if count_a > count_b:
         primary = _get_color_name(color_a, None, colors_set)
         secondary = _get_color_name(color_b, primary, colors_set)
+        alpha_img = _extract_alpha(blob, color_b, color_a)
     else:
         primary = _get_color_name(color_b, None, colors_set)
         secondary = _get_color_name(color_a, primary, colors_set)
+        alpha_img = _extract_alpha(blob, color_a, color_b)
 
-    return primary, secondary
+    return primary, secondary, alpha_img
+
+
+def _extract_alpha(blob, color, not_color):
+
+    # get masked blob.image using contour
+    mask_img = np.array(blob.image)
+    mask = np.zeros(mask_img.shape[:2], dtype='uint8')
+    cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
+    masked_image = cv2.bitwise_and(mask_img, mask_img, mask=mask)
+
+    # find the diff between each pixel and each color
+    diff = np.sum(np.square(masked_image[:, :, :] - color[:]), axis=2)
+    diff_not = np.sum(np.square(masked_image[:, :, :] - not_color[:]), axis=2)
+
+    # create template image
+    isolated_img = np.array(blob.image)
+    isolated_img[:, :, :] = [255, 255, 255]
+
+    # color pixels closer to color than not color
+    alpha_x, alpha_y = np.nonzero(diff < diff_not * 4)  # * 4 b/c noise
+    isolated_img[alpha_x, alpha_y, :] = [0, 0, 0]
+
+    # make rest of background white
+    bg_x, bg_y, _ = np.where(masked_image[:, :] == [0, 0, 0])
+    isolated_img[bg_x, bg_y, :] = [255, 255, 255]
+
+    # clean the isolated images
+    kernel = np.ones((2, 2), np.uint8)
+    isolated_img = cv2.dilate(isolated_img, kernel, 1)  # erode (colors flipped)
+    isolated_img = cv2.erode(isolated_img, kernel, 1)  # dilate
+
+    return PIL.Image.fromarray(isolated_img.astype('uint8'), 'RGB')
 
 
 def _find_main_colors(blob):
