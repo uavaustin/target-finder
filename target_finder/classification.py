@@ -200,9 +200,9 @@ def _extract_alpha(blob, color, not_color):
     bg_x, bg_y, _ = np.where(masked_image[:, :] == [0, 0, 0])
     isolated_img[bg_x, bg_y, :] = [255, 255, 255]
 
-    # clean the isolated images
+    # clean the isolated images (ops flipped since image is b/w)
     kernel = np.ones((2, 2), np.uint8)
-    isolated_img = cv2.dilate(isolated_img, kernel, 1)  # erode (colors flipped)
+    isolated_img = cv2.dilate(isolated_img, kernel, 1)  # erode
     isolated_img = cv2.erode(isolated_img, kernel, 1)  # dilate
 
     return PIL.Image.fromarray(isolated_img.astype('uint8'), 'RGB')
