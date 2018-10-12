@@ -188,24 +188,40 @@ def _extract_alpha(blob, color, not_color):
     diff = np.sum(np.square(masked_image[:, :, :] - color[:]), axis=2)
     diff_not = np.sum(np.square(masked_image[:, :, :] - not_color[:]), axis=2)
 
-    # create template image
-    isolated_img = np.array(blob.image)
-    isolated_img[:, :, :] = [255, 255, 255]
+    # create base image
+    isolated_img = np.zeros(mask_img.shape[:2], np.uint8)
+    isolated_img[:, :] = 0
 
     # color pixels closer to color than not color
     alpha_x, alpha_y = np.nonzero(diff < diff_not * 4)  # * 4 b/c noise
-    isolated_img[alpha_x, alpha_y, :] = [0, 0, 0]
+    isolated_img[alpha_x, alpha_y] = 255
 
-    # make rest of background white
+    # make rest of background black
     bg_x, bg_y, _ = np.where(masked_image[:, :] == [0, 0, 0])
-    isolated_img[bg_x, bg_y, :] = [255, 255, 255]
+    isolated_img[bg_x, bg_y] = 0
 
-    # clean the isolated images (ops flipped since image is b/w)
-    kernel = np.ones((2, 2), np.uint8)
-    isolated_img = cv2.dilate(isolated_img, kernel, 1)  # erode
-    isolated_img = cv2.erode(isolated_img, kernel, 1)  # dilate
+    # find connected components to further remove noise
+    ret, labels = cv2.connectedComponents(isolated_img, 8)
 
-    return PIL.Image.fromarray(isolated_img.astype('uint8'), 'RGB')
+    # extract the largest component, this should be the alpha
+    largest_label = -1
+    largest_cnt = -1
+
+    num_parts = np.max(labels)
+    for label in range(1, num_parts):
+        cnt = np.count_nonzero(labels == label)
+        if cnt > largest_cnt:
+            largest_label = label
+            largest_cnt = cnt
+
+    isolated_img[labels != largest_label] = 0
+
+    # convert to a 3d (color) image and flip black/white
+    isolated_img_color = np.zeros(mask_img.shape, np.uint8)
+    isolated_img_color[isolated_img == 0] = 255
+    isolated_img_color[isolated_img != 0] = 0
+
+    return PIL.Image.fromarray(isolated_img_color.astype('uint8'), 'RGB')
 
 
 def _find_main_colors(blob):
