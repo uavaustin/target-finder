@@ -2,6 +2,7 @@ import webcolors
 
 # Defines Hue ranges for different colors
 color_ranges = {
+    '0': 'RED',
     '15': 'RED',
     '50': 'ORANGE',
     '66': 'YELLOW',
@@ -61,4 +62,6 @@ def get_hsv(color, color_ranges):
     return h, s, v
 
 # !This tests it. You can change the input color and check if it outputs the correct color
-get_hsv('#CC00FF', color_ranges)
+get_hsv('#ffd27a', color_ranges)
+
+#!!! Primary and secondary branches
