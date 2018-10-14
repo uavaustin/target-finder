@@ -109,7 +109,13 @@ def _do_classify(blob, min_confidence):
 
     cropped_img = blob.image
 
-    primary, secondary, alpha_img = _get_color(blob)
+    # get rgb arrays for both colors then extract the alpha as b/w image
+    primary_rgb, secondary_rgb = _get_color(blob)
+    alpha_img = _extract_alpha(blob, secondary_rgb, primary_rgb)
+
+    # convert rbg arrays to color names
+    primary = _get_color_name(primary_rgb, None)
+    secondary = _get_color_name(secondary_rgb, primary)
 
     image_array = cropped_img.convert('RGB')
     predictions = tf_session.run(softmax_tensor, {'DecodeJpeg:0': image_array})
@@ -131,53 +137,20 @@ def _do_classify(blob, min_confidence):
 
 
 def _get_color(blob):
-
-    colors_set = {
-        '#000000': None,
-        '#000001': Color.BLACK,
-        '#ffffff': Color.WHITE,
-        '#407340': Color.GREEN,
-        '#94ff94': Color.GREEN,
-        '#00ff00': Color.GREEN,
-        '#008004': Color.GREEN,
-        '#525294': Color.BLUE,
-        '#7f7fff': Color.BLUE,
-        '#0000ff': Color.BLUE,
-        '#000087': Color.BLUE,
-        '#808080': Color.GRAY,
-        '#994c00': Color.BROWN,
-        '#e1dd68': Color.YELLOW,
-        '#fffc7a': Color.YELLOW,
-        '#fff700': Color.YELLOW,
-        '#d2cb00': Color.YELLOW,
-        '#d8ac53': Color.ORANGE,
-        '#FFCC65': Color.ORANGE,
-        '#ffa500': Color.ORANGE,
-        '#d28c00': Color.ORANGE,
-        '#bc3c3c': Color.RED,
-        '#ff5050': Color.RED,
-        '#ff0000': Color.RED,
-        '#9a0000': Color.RED,
-        '#800080': Color.PURPLE
-    }
-
+    """Find the primary and seconday colors of the the blob"""
     (color_a, count_a), (color_b, count_b) = _find_main_colors(blob)
 
     # this assumes the shape will have more pixels than alphanum
     if count_a > count_b:
-        primary = _get_color_name(color_a, None, colors_set)
-        secondary = _get_color_name(color_b, primary, colors_set)
-        alpha_img = _extract_alpha(blob, color_b, color_a)
+        primary, secondary = color_a, color_b
     else:
-        primary = _get_color_name(color_b, None, colors_set)
-        secondary = _get_color_name(color_a, primary, colors_set)
-        alpha_img = _extract_alpha(blob, color_a, color_b)
+        primary, secondary = color_b, color_a
 
-    return primary, secondary, alpha_img
+    return primary, secondary
 
 
 def _extract_alpha(blob, color, not_color):
-
+    """Extract the alphanumeric as a b/w image"""
     # get masked blob.image using contour
     mask_img = np.array(blob.image)
     mask = np.zeros(mask_img.shape[:2], dtype='uint8')
@@ -225,7 +198,7 @@ def _extract_alpha(blob, color, not_color):
 
 
 def _find_main_colors(blob):
-
+    """Find the two main colors of the blob"""
     mask_img = np.array(blob.image)  # the image w/the mask applied
 
     mask = np.zeros(mask_img.shape[:2], dtype='uint8')  # the mask itself
@@ -256,7 +229,37 @@ def _find_main_colors(blob):
     return (color_a, count_a), (color_b, count_b)
 
 
-def _get_color_name(requested_color, prev_color, colors_set):
+def _get_color_name(requested_color, prev_color):
+
+    colors_set = {
+        '#000000': None,
+        '#000001': Color.BLACK,
+        '#ffffff': Color.WHITE,
+        '#407340': Color.GREEN,
+        '#94ff94': Color.GREEN,
+        '#00ff00': Color.GREEN,
+        '#008004': Color.GREEN,
+        '#525294': Color.BLUE,
+        '#7f7fff': Color.BLUE,
+        '#0000ff': Color.BLUE,
+        '#000087': Color.BLUE,
+        '#808080': Color.GRAY,
+        '#994c00': Color.BROWN,
+        '#e1dd68': Color.YELLOW,
+        '#fffc7a': Color.YELLOW,
+        '#fff700': Color.YELLOW,
+        '#d2cb00': Color.YELLOW,
+        '#d8ac53': Color.ORANGE,
+        '#FFCC65': Color.ORANGE,
+        '#ffa500': Color.ORANGE,
+        '#d28c00': Color.ORANGE,
+        '#bc3c3c': Color.RED,
+        '#ff5050': Color.RED,
+        '#ff0000': Color.RED,
+        '#9a0000': Color.RED,
+        '#800080': Color.PURPLE
+    }
+
     color_codes = {}
     i = 0
 
