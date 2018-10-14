@@ -115,8 +115,6 @@ def _do_classify(blob, min_confidence):
         predictions = tf_session.run(softmax_tensor,
                                      {'DecodeJpeg:0': image_array})
     else:
-        # new model
-        assert target_finder_model.__version__ >= '0.2.0.dev1'
         # Manually do jpg preprocessing and send array as 'Placeholder:0'
         image_array = np.array(cropped_img.resize((299, 299)), np.float32)
         image_array /= 255.
