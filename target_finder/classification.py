@@ -108,11 +108,11 @@ def _do_classify(blob, min_confidence):
     """
 
     cropped_img = blob.image
-    
+
     # get rgb arrays for both colors then extract the alpha as b/w image
     primary_rgb, secondary_rgb = _get_color(blob)
     alpha_img = _extract_alpha(blob, secondary_rgb, primary_rgb)
-    
+
     # convert rbg arrays to color names
     primary = _get_color_name(primary_rgb, None)
     secondary = _get_color_name(secondary_rgb, primary)
