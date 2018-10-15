@@ -108,6 +108,14 @@ def _do_classify(blob, min_confidence):
     """
 
     cropped_img = blob.image
+    
+    # get rgb arrays for both colors then extract the alpha as b/w image
+    primary_rgb, secondary_rgb = _get_color(blob)
+    alpha_img = _extract_alpha(blob, secondary_rgb, primary_rgb)
+    
+    # convert rbg arrays to color names
+    primary = _get_color_name(primary_rgb, None)
+    secondary = _get_color_name(secondary_rgb, primary)
 
     if not hasattr(target_finder_model, '__version__'):
         # old code
@@ -129,7 +137,7 @@ def _do_classify(blob, min_confidence):
     target = None
 
     if confidence >= min_confidence and shape != Shape.NAS:
-        primary, secondary = _get_color(blob)
+
         target = Target(blob.x, blob.y, blob.width, blob.height, shape=shape,
                         background_color=primary, alphanumeric_color=secondary,
                         image=blob.image, confidence=confidence)
@@ -138,51 +146,68 @@ def _do_classify(blob, min_confidence):
 
 
 def _get_color(blob):
-
-    colors_set = {
-        '#000000': None,
-        '#000001': Color.BLACK,
-        '#ffffff': Color.WHITE,
-        '#407340': Color.GREEN,
-        '#94ff94': Color.GREEN,
-        '#00ff00': Color.GREEN,
-        '#008004': Color.GREEN,
-        '#525294': Color.BLUE,
-        '#7f7fff': Color.BLUE,
-        '#0000ff': Color.BLUE,
-        '#000087': Color.BLUE,
-        '#808080': Color.GRAY,
-        '#994c00': Color.BROWN,
-        '#e1dd68': Color.YELLOW,
-        '#fffc7a': Color.YELLOW,
-        '#fff700': Color.YELLOW,
-        '#d2cb00': Color.YELLOW,
-        '#d8ac53': Color.ORANGE,
-        '#FFCC65': Color.ORANGE,
-        '#ffa500': Color.ORANGE,
-        '#d28c00': Color.ORANGE,
-        '#bc3c3c': Color.RED,
-        '#ff5050': Color.RED,
-        '#ff0000': Color.RED,
-        '#9a0000': Color.RED,
-        '#800080': Color.PURPLE
-    }
-
+    """Find the primary and seconday colors of the the blob"""
     (color_a, count_a), (color_b, count_b) = _find_main_colors(blob)
 
     # this assumes the shape will have more pixels than alphanum
     if count_a > count_b:
-        primary = _get_color_name(color_a, None, colors_set)
-        secondary = _get_color_name(color_b, primary, colors_set)
+        primary, secondary = color_a, color_b
     else:
-        primary = _get_color_name(color_b, None, colors_set)
-        secondary = _get_color_name(color_a, primary, colors_set)
+        primary, secondary = color_b, color_a
 
     return primary, secondary
 
 
-def _find_main_colors(blob):
+def _extract_alpha(blob, color, not_color):
+    """Extract the alphanumeric as a b/w image"""
+    # get masked blob.image using contour
+    mask_img = np.array(blob.image)
+    mask = np.zeros(mask_img.shape[:2], dtype='uint8')
+    cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
+    masked_image = cv2.bitwise_and(mask_img, mask_img, mask=mask)
 
+    # find the diff between each pixel and each color
+    diff = np.sum(np.square(masked_image[:, :, :] - color[:]), axis=2)
+    diff_not = np.sum(np.square(masked_image[:, :, :] - not_color[:]), axis=2)
+
+    # create base image
+    isolated_img = np.zeros(mask_img.shape[:2], np.uint8)
+    isolated_img[:, :] = 0
+
+    # color pixels closer to color than not color
+    alpha_x, alpha_y = np.nonzero(diff < diff_not * 4)  # * 4 b/c noise
+    isolated_img[alpha_x, alpha_y] = 255
+
+    # make rest of background black
+    bg_x, bg_y, _ = np.where(masked_image[:, :] == [0, 0, 0])
+    isolated_img[bg_x, bg_y] = 0
+
+    # find connected components to further remove noise
+    ret, labels = cv2.connectedComponents(isolated_img, 8)
+
+    # extract the largest component, this should be the alpha
+    largest_label = -1
+    largest_cnt = -1
+
+    num_parts = np.max(labels)
+    for label in range(1, num_parts):
+        cnt = np.count_nonzero(labels == label)
+        if cnt > largest_cnt:
+            largest_label = label
+            largest_cnt = cnt
+
+    isolated_img[labels != largest_label] = 0
+
+    # convert to a 3d (color) image and flip black/white
+    isolated_img_color = np.zeros(mask_img.shape, np.uint8)
+    isolated_img_color[isolated_img == 0] = 255
+    isolated_img_color[isolated_img != 0] = 0
+
+    return PIL.Image.fromarray(isolated_img_color.astype('uint8'), 'RGB')
+
+
+def _find_main_colors(blob):
+    """Find the two main colors of the blob"""
     mask_img = np.array(blob.image)  # the image w/the mask applied
 
     mask = np.zeros(mask_img.shape[:2], dtype='uint8')  # the mask itself
@@ -213,7 +238,37 @@ def _find_main_colors(blob):
     return (color_a, count_a), (color_b, count_b)
 
 
-def _get_color_name(requested_color, prev_color, colors_set):
+def _get_color_name(requested_color, prev_color):
+
+    colors_set = {
+        '#000000': None,
+        '#000001': Color.BLACK,
+        '#ffffff': Color.WHITE,
+        '#407340': Color.GREEN,
+        '#94ff94': Color.GREEN,
+        '#00ff00': Color.GREEN,
+        '#008004': Color.GREEN,
+        '#525294': Color.BLUE,
+        '#7f7fff': Color.BLUE,
+        '#0000ff': Color.BLUE,
+        '#000087': Color.BLUE,
+        '#808080': Color.GRAY,
+        '#994c00': Color.BROWN,
+        '#e1dd68': Color.YELLOW,
+        '#fffc7a': Color.YELLOW,
+        '#fff700': Color.YELLOW,
+        '#d2cb00': Color.YELLOW,
+        '#d8ac53': Color.ORANGE,
+        '#FFCC65': Color.ORANGE,
+        '#ffa500': Color.ORANGE,
+        '#d28c00': Color.ORANGE,
+        '#bc3c3c': Color.RED,
+        '#ff5050': Color.RED,
+        '#ff0000': Color.RED,
+        '#9a0000': Color.RED,
+        '#800080': Color.PURPLE
+    }
+
     color_codes = {}
     i = 0
 
