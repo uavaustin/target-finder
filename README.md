@@ -46,13 +46,36 @@ The model used for target-finder is packaged in target-finder-model. It can be
 installed from GitHub Releases:
 
 ```sh
-$ pip install https://github.com/uavaustin/target-finder-model/releases/download/v0.1.0/target-finder-model-0.1.0.tar.gz
+$ pip install https://github.com/uavaustin/target-finder-model/releases/download/v0.2.0/target-finder-model-0.2.0.tar.gz
 ```
 
 ## Command-line Interface
 
 The library ships with `target-finder-cli` command, type `target-finder-cli -h`
 in the command-line after installing for help and usage.
+
+```text
+usage: target-finder-cli [-h] [-v] {blobs,targets} ...
+
+optional arguments:
+  -h, --help       show this help message and exit
+  -v, --version    show the version and exit
+
+subcommands:
+  {blobs,targets}
+    blobs          finds the interesting blobs in images
+    targets        finds the targets in images
+```
+
+For example, to check for all the targets in two folders and put them in a
+folder called `out/`, you can use
+
+```sh
+$ target-finder-cli targets folder-1 folder-2 -o out
+```
+
+By default, all the target images and metadata will go into your current
+directory.
 
 ## Testing
 
