@@ -27,7 +27,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 label_lines = [line.rstrip() for line in tf.gfile.GFile(labels_loc)]
 
 # Register the graph with tensorflow.
-with tf.gfile.FastGFile(graph_loc, 'rb') as f:
+with tf.gfile.GFile(graph_loc, 'rb') as f:
     graph_def = tf.GraphDef()
     graph_def.ParseFromString(f.read())
 
