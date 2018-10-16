@@ -6,13 +6,18 @@ import os
 import sys
 
 import PIL.Image
+import tensorflow as tf
+import target_finder_model
 
 from .classification import find_targets
 from .preprocessing import find_blobs
+from .version import __version__
 
 
 # Create the top level parser.
 parser = argparse.ArgumentParser()
+parser.add_argument('-v', '--version', action='store_true',
+                    help='show the version and exit')
 subparsers = parser.add_subparsers(dest='subcommand', title='subcommands')
 
 # Parser for the blobs subcommand.
@@ -55,7 +60,23 @@ target_parser.add_argument('--limit', type=int, dest='limit', action='store',
 def run(args=None):
     """Dispatch the correct subcommand."""
     args = parser.parse_args(args)
+
+    # Print the version of this library and the model if requested.
+    if args.version:
+        print_version()
+        return
+
     args.func(args)
+
+
+def print_version():
+    if hasattr(target_finder_model, '__version__'):
+        model_version = target_finder_model.__version__
+    else:
+        model_version = '0.1.0'
+
+    print(f'target-finder v{__version__} with target-finder-model '
+          f'v{model_version} (tensorflow v{tf.__version__})')
 
 
 def run_blobs(args):
