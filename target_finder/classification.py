@@ -117,8 +117,17 @@ def _do_classify(blob, min_confidence):
     primary = _get_color_name(primary_rgb, None)
     secondary = _get_color_name(secondary_rgb, primary)
 
-    image_array = cropped_img.convert('RGB')
-    predictions = tf_session.run(softmax_tensor, {'DecodeJpeg:0': image_array})
+    if not hasattr(target_finder_model, '__version__'):
+        # old code
+        image_array = cropped_img.convert('RGB')
+        predictions = tf_session.run(softmax_tensor,
+                                     {'DecodeJpeg:0': image_array})
+    else:
+        # Manually do jpg preprocessing and send array as 'Placeholder:0'
+        image_array = np.array(cropped_img.resize((299, 299)), np.float32)
+        image_array /= 255.
+        predictions = tf_session.run(softmax_tensor,
+                                     {'Placeholder:0': [image_array]})
 
     top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
 
