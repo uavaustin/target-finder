@@ -16,7 +16,7 @@ $ pip install git+https://github.com/uavaustin/target-finder.git
 Alternatively, target-finder can be fetched from GitHub Releases:
 
 ```sh
-$ pip install https://github.com/uavaustin/target-finder/releases/download/v0.3.0/target-finder-0.3.0.tar.gz
+$ pip install https://github.com/uavaustin/target-finder/releases/download/v0.3.1/target-finder-0.3.1.tar.gz
 ```
 
 Python 3 is required. *If `python --version` shows Python 2, then use `python3`
