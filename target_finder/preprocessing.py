@@ -31,6 +31,7 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
     # Find the edges in the image.
     cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     edges = cv2.Canny(cv_image, 200, 500)
+    kernel = np.ones((3, 3), np.uint8)
     edges = cv2.dilate(edges, kernel, 1)
     edges = cv2.erode(edges, kernel, 1)
 
