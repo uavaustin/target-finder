@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1 (2018-10-12)
+
+### Fixes
+
+- Fixed an undefined reference to the `kernel` variable in the preprocessing.
+
 ## v0.3.0 (2018-10-20)
 
 ### Features
