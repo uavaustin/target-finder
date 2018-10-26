@@ -56,17 +56,16 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
         else:
             has_mask = False
 
-        if (width < min_width or height < min_width or height >
-                max_width or width > max_width):
-            continue
-
         # align the contour with the cropped image
         rel_cnt = np.array(cnt)
         rel_cnt[:, :, 0] -= max(x - padding, 0)
         rel_cnt[:, :, 1] -= max(y - padding, 0)
 
         # Add the blob to the list without the image.
-        blobs.append(Blob(x, y, width, height, None, has_mask, rel_cnt, edges))
+        cnt_blob = Blob(x, y, width, height, None, has_mask, rel_cnt, edges)
+
+        if is_shape_blob(cnt_blob, min_width, max_width):
+            blobs.append(cnt_blob)
 
     # Sort the contours with the largest area first.
     blobs.sort(key=lambda b: b.width * b.height, reverse=True)
@@ -80,6 +79,27 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
                                  blob.height, padding)
 
     return blobs
+
+
+def is_shape_blob(blob, min_width, max_width):
+    """Verify that this could be a blob containing a shape"""
+    width = blob.width
+    height = blob.height
+
+    # check provided restrictions
+    if min(width, height) < min_width or max(width, height) > max_width:
+        return False
+
+    # must be closed cnt
+    if not blob.has_mask:
+        return False
+
+    # check bbox squareness
+    size_ratio = max(width, height) / min(width, height)
+    if size_ratio > 1.5:
+        return False
+
+    return True
 
 
 def _crop_image(image, x, y, width, height, padding):
