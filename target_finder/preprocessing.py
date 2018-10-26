@@ -94,9 +94,15 @@ def is_shape_blob(blob, min_width, max_width):
     if not blob.has_mask:
         return False
 
-    # check bbox squareness
+    # check bbox ratio
     size_ratio = max(width, height) / min(width, height)
-    if size_ratio > 1.5:
+    if size_ratio > 2:
+        return False
+
+    # check solidity
+    hull = cv2.convexHull(cnt)
+    solidity = cv2.contourArea(cnt) / cv2.contourArea(hull)
+    if solidity < .65:
         return False
 
     return True
