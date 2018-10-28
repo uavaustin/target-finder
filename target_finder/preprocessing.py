@@ -91,8 +91,8 @@ def _is_shape_like_blob(blob, min_width, max_width):
         return False
 
     # must be closed cnt
-    if not blob.has_mask:
-        return False
+    # if not blob.has_mask:
+    #     return False
 
     # check bbox ratio
     size_ratio = max(width, height) / min(width, height)
