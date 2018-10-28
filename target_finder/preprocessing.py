@@ -62,10 +62,10 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
         rel_cnt[:, :, 1] -= max(y - padding, 0)
 
         # Add the blob to the list without the image.
-        cnt_blob = Blob(x, y, width, height, None, has_mask, rel_cnt, edges)
+        blob = Blob(x, y, width, height, None, has_mask, rel_cnt, edges)
 
-        if is_shape_blob(cnt_blob, min_width, max_width):
-            blobs.append(cnt_blob)
+        if _is_shape_like_blob(blob, min_width, max_width):
+            blobs.append(blob)
 
     # Sort the contours with the largest area first.
     blobs.sort(key=lambda b: b.width * b.height, reverse=True)
@@ -81,7 +81,7 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
     return blobs
 
 
-def is_shape_blob(blob, min_width, max_width):
+def _is_shape_like_blob(blob, min_width, max_width):
     """Verify that this could be a blob containing a shape"""
     width = blob.width
     height = blob.height
@@ -100,8 +100,8 @@ def is_shape_blob(blob, min_width, max_width):
         return False
 
     # check solidity
-    hull = cv2.convexHull(cnt)
-    solidity = cv2.contourArea(cnt) / cv2.contourArea(hull)
+    hull = cv2.convexHull(blob.cnt)
+    solidity = cv2.contourArea(blob.cnt) / cv2.contourArea(hull)
     if solidity < .65:
         return False
 
