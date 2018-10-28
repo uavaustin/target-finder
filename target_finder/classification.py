@@ -7,14 +7,17 @@ import cv2
 import numpy as np
 import os
 import PIL.Image
-import scipy.cluster
+import sklearn.cluster
 import scipy.misc
 import target_finder_model
 import tensorflow as tf
 import webcolors
 
+import matplotlib
+
 from .preprocessing import find_blobs
 from .types import Color, Shape, Target
+
 
 graph_loc = target_finder_model.graph_file
 labels_loc = target_finder_model.labels_file
@@ -128,127 +131,61 @@ def _do_classify(blob, min_confidence):
 
 
 def _get_color(blob):
-    colors_set = {
-        '#000000': None,
-        '#000001': Color.BLACK,
-        '#ffffff': Color.WHITE,
-        '#407340': Color.GREEN,
-        '#94ff94': Color.GREEN,
-        '#00ff00': Color.GREEN,
-        '#008004': Color.GREEN,
-        '#525294': Color.BLUE,
-        '#7f7fff': Color.BLUE,
-        '#0000ff': Color.BLUE,
-        '#000087': Color.BLUE,
-        '#808080': Color.GRAY,
-        '#994c00': Color.BROWN,
-        '#e1dd68': Color.YELLOW,
-        '#fffc7a': Color.YELLOW,
-        '#fff700': Color.YELLOW,
-        '#d2cb00': Color.YELLOW,
-        '#d8ac53': Color.ORANGE,
-        '#FFCC65': Color.ORANGE,
-        '#ffa500': Color.ORANGE,
-        '#d28c00': Color.ORANGE,
-        '#bc3c3c': Color.RED,
-        '#ff5050': Color.RED,
-        '#ff0000': Color.RED,
-        '#9a0000': Color.RED,
-        '#800080': Color.PURPLE
-    }
+    
+    colors_set = [25, Color.RED], [56, Color.ORANGE], [69, Color.YELLOW], [169, Color.GREEN], [274, Color.BLUE], [319, Color.PURPLE], [360, Color.RED]
 
-    #Color ranges for HSV
-    color_ranges = {
-        '15': Color.RED,
-        '50': Color.ORANGE,
-        '66': Color.YELLOW,
-        '155': Color.GREEN,
-        '265': Color.BLUE,
-        '299': Color.PURPLE,
-        '360': Color.RED
-    }
-    mask_img = np.array(blob.image)
+    (color_a, count_a), (color_b, count_b) = _find_main_colors(blob)
 
-    dst = mask_img
-    width, height = dst.shape[:2]
 
-    if width > height:
-        y1 = blob.y
-        y2 = blob.y + blob.height
-        x1 = blob.x
-        x2 = blob.x + blob.width
+    # this assumes the shape will have more pixels than alphanum
+    if count_a > count_b:
+        primary = _get_color_name(color_a, None, colors_set)
+        secondary = _get_color_name(color_b, primary, colors_set)
     else:
-        x1 = blob.y
-        x2 = blob.y + blob.height
-        y1 = blob.x
-        y2 = blob.x + blob.width
-
-    if blob.has_mask:
-        mask = np.zeros(mask_img.shape[:2], dtype='uint8')
-        cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
-        dst = cv2.bitwise_and(mask_img, mask_img, mask=mask)
-    else:
-        y1 = y1 + 5
-        y2 = y2 - 5
-        x1 = x1 + 5
-        x2 = x2 - 5
-
-    cropped_img = PIL.Image.fromarray(dst)
-    cropped_img.crop((x1, y1, x2, y2))
-
-    ar = scipy.misc.fromimage(cropped_img)
-    dim = ar.shape
-    ar = ar.reshape(scipy.product(dim[:2]), dim[2])
-    codes, dist = scipy.cluster.vq.kmeans(ar.astype(float), 3)
-
-    primary = _get_color_name(codes[0].astype(int), None, colors_set)
-
-    if len(codes) > 1:
-        secondary = _get_color_name(codes[1].astype(int), primary, colors_set)
-    else:
-        secondary = Color.NONE
-
-    # Ignore black mask for color detection, return the most
-    # prominent color as shape.
-    if primary is None:
-        primary = secondary
-        secondary = Color.NONE
-
-    if secondary == Color.NONE and len(codes) > 2:
-        tertiary = _get_color_name(codes[2].astype(int), secondary, colors_set)
-        secondary = tertiary
+        primary = _get_color_name(color_b, None, colors_set)
+        secondary = _get_color_name(color_a, primary, colors_set)
 
     return primary, secondary
 
 
+def _find_main_colors(blob):
+
+    mask_img = np.array(blob.image)  # the image w/the mask applied
+
+    mask = np.zeros(mask_img.shape[:2], dtype='uint8')  # the mask itself
+
+    # create mask
+    cv2.drawContours(mask, [blob.cnt], -1, 255, -1)
+
+    # apply mask
+    masked_image = cv2.bitwise_and(mask_img, mask_img, mask=mask)
+
+    # extract colors from region within mask
+    mask_x, mask_y = np.nonzero(mask)
+    valid_colors = masked_image[mask_x, mask_y].astype(np.float)
+
+    # Get the two average colors
+    algo = sklearn.cluster.AgglomerativeClustering(n_clusters=2)
+    algo.fit(valid_colors)
+    colors = algo.labels_
+    all_a = valid_colors[colors == 1]
+    all_b = valid_colors[colors == 0]
+
+    # extract colors from prediction
+    color_a = np.mean(all_a, axis=0)
+    count_a = all_a.shape[0]
+    color_b = np.mean(all_b, axis=0)
+    count_b = all_b.shape[0]
+
+    return (color_a, count_a), (color_b, count_b)
+
+
 def _get_color_name(requested_color, prev_color, colors_set):
-    color_codes = {}
-    i = 0
+    # Calculates HSV values
+    r0 = requested_color[0]
+    g0 = requested_color[1]
+    b0 = requested_color[2]
 
-    # Makes sure alpha color and shape color are different.
-    if prev_color is not None:
-        for key, name in colors_set.items():
-            if name == prev_color:
-                color_codes[i] = key
-                i = i + 1
-        for i in color_codes:
-            del colors_set[color_codes[i]]
-
-    min_colors = {}
-
-    # Find closest color with a given RGB value.
-    for key, name in colors_set.items():
-        get_hsv(key)
-    return min_colors[min(min_colors.keys())]
-
-
-def get_hsv(color, color_ranges):
-    """
-    Converts RGB to HSV value
-    :param color: takes in a hex code
-    :return: HSV value
-    """
-    r0, g0, b0 = webcolors.hex_to_rgb(color)
     r = r0 / 255
     g = g0 / 255
     b = b0 / 255
@@ -273,9 +210,27 @@ def get_hsv(color, color_ranges):
     else:
         s = delta / c_max
 
-    v = c_max
+    v = c_max * 100
+    s *= 100
+    # text_file = open("Output.txt", "w")
+    # text_file.write(str(v))
+    # text_file.close()
+    if 0 < v <= 25:
+        return Color.BLACK
+    elif 0 < s <= 20:
+        if 25 < v < 80:
+            return Color.GRAY
+        else:
+            return Color.WHITE
 
-    #Checking if it matches any color
-    for key in color_ranges:
+    for i in range(len(colors_set)):
+        if h < colors_set[i][0]:
+            if colors_set[i][1] == Color.ORANGE:
+                if v < 60:
+                    return Color.BROWN
+                else:
+                    return colors_set[i][1]
+            else:
+                return colors_set[i][1]
 
-    return h, s, v
+    return Color.NONE
