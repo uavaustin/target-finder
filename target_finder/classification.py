@@ -16,6 +16,7 @@ import webcolors
 from .preprocessing import find_blobs
 from .types import Color, Shape, Target
 
+import itertools
 
 graph_loc = target_finder_model.graph_file
 labels_loc = target_finder_model.labels_file
@@ -40,7 +41,7 @@ tf_session = tf.Session(config=config)
 softmax_tensor = tf_session.graph.get_tensor_by_name('final_result:0')
 
 
-def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
+def find_targets(image = None, blobs = None, min_confidence = 0.85, limit = 10):
     """Return the targets found in an image.
 
     Targets are returned in the order of highest confidence. Once the
@@ -98,6 +99,32 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
     # Sorting with highest confidence first.
     targets.sort(key=lambda t: t.confidence, reverse=True)
 
+    for target_num, target in enumerate(targets):
+        for i in range (target_num + 1, len(targets)):
+          bound_x_left1 = target.x
+          bound_x_right1 = target.x + target.width
+          bound_y_top1 = target.y
+          bound_y_bottom1 = target.y + target.height
+
+          bound_x_left2 = targets[i].x
+          bound_x_right2 = targets[i].x + targets[i].width
+          bound_y_top2 =  targets[i].y
+          bound_y_bottom2 = targets[i].y + targets[i].height
+          #print("Last target coordinates: (%d, %d)"%(bound_x_left1, bound_y_top1))
+          #print("Current target coordinates: (%d, %d)"% (bound_x_left2, bound_y_top2))
+
+          #checks to see if current target is within targets[i]
+          if (bound_x_left1 <= bound_x_left2 and bound_x_left2 <= bound_x_right1):
+              if (bound_y_top1 <= bound_y_top2 and bound_y_top2 <= bound_y_bottom1): 
+                  print("current target within other target")
+                  targets.remove(target)
+          
+          #checks to see if targets[i] is within current target
+          elif (bound_x_left2 <= bound_x_left1 and bound_x_left1 <= bound_x_right2):
+              if (bound_y_top2 <= bound_y_top1 and bound_y_top1 <= bound_y_bottom2): 
+                  print("previous target is within current target")
+                  targets.remove(targets[i])
+    
     return targets
 
 

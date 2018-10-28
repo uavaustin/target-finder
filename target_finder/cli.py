@@ -10,6 +10,7 @@ import PIL.Image
 from .classification import find_targets
 from .preprocessing import find_blobs
 
+import itertools
 
 # Create the top level parser.
 parser = argparse.ArgumentParser()
@@ -95,21 +96,19 @@ def run_targets(args):
         targets = find_targets(image, min_confidence=args.min_confidence,
                                limit=args.limit)
 
-        # Save each target found with an incrementing number.
-        for target in targets:
-            print('Saving target #{:06d} from {:s}'.format(target_num,
-                                                           filename))
+        for target in targets: 
+          print('Saving target #{:06d} from {:s}'.format(target_num,filename))
 
-            basename_image = 'target-{:06d}.jpg'.format(target_num)
-            basename_meta = 'target-{:06d}.json'.format(target_num)
+          basename_image = 'target-{:06d}.jpg'.format(target_num)
+          basename_meta = 'target-{:06d}.json'.format(target_num)
 
-            filename_image = os.path.join(args.output, basename_image)
-            filename_meta = os.path.join(args.output, basename_meta)
+          filename_image = os.path.join(args.output, basename_image)
+          filename_meta = os.path.join(args.output, basename_meta)
 
-            target.image.save(filename_image)
-            _save_target_meta(filename_meta, filename, target)
+          target.image.save(filename_image)
+          _save_target_meta(filename_meta, filename, target)
 
-            target_num += 1
+          target_num += 1
 
 
 def _list_images(filenames):
