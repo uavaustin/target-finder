@@ -90,6 +90,7 @@ def _is_shape_like_blob(blob, min_width, max_width):
     if min(width, height) < min_width or max(width, height) > max_width:
         return False
 
+    # TODO: Uncomment once "Close contours for masking images" is complete
     # must be closed cnt
     # if not blob.has_mask:
     #     return False
