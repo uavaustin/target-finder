@@ -13,8 +13,6 @@ import target_finder_model
 import tensorflow as tf
 import webcolors
 
-import matplotlib
-
 from .preprocessing import find_blobs
 from .types import Color, Shape, Target
 

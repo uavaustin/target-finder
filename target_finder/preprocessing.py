@@ -54,13 +54,7 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
             has_mask = True
         else:
             has_mask = False
-        f = open("Output.txt", 'w')
-        f.write("Width: "+str(width))
-        f.write("\nHeight: "+str(height))
-        f.write("\nMinW: "+str(min_width))
-        f.write("\nMaxW: "+str(max_width))
-        f.close()
-
+        
         if (width < min_width or height < min_width or height >
                 max_width or width > max_width):
             continue
