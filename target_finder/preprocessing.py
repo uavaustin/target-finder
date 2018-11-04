@@ -33,11 +33,30 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
     edges = cv2.Canny(cv_image, 200, 500)
     kernel = np.ones((3, 3), np.uint8)
     edges = cv2.dilate(edges, kernel, 1)
-    edges = cv2.erode(edges, kernel, 1)
 
-    # Find the contours according to the threshold.
-    ret, thresh = cv2.threshold(edges, 127, 255, 0)
-    _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
+    # invert the image and find connected regions
+    ret, labels = cv2.connectedComponents((255 - edges), connectivity=8)
+
+    largest_label = -1
+    largest_cnt = -1
+
+    num_parts = np.max(labels)
+    for label in range(1, num_parts):
+        cnt = np.count_nonzero(labels == label)
+        if cnt > largest_cnt:
+            largest_label = label
+            largest_cnt = cnt
+
+    # create binary b/w image
+    binary_thresh = np.array(edges)
+    binary_thresh[labels == largest_label] = 0
+    binary_thresh[labels != largest_label] = 255
+
+    # erode so a blob cnt better fits its image
+    binary_thresh = cv2.erode(binary_thresh, kernel, 1)
+
+    # generate contours
+    _, contours, _ = cv2.findContours(binary_thresh, cv2.RETR_EXTERNAL,
                                       cv2.CHAIN_APPROX_SIMPLE)
 
     blobs = []
