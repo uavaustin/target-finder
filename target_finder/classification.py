@@ -239,56 +239,64 @@ def _find_main_colors(blob):
 
 
 def _get_color_name(requested_color, prev_color):
+    # Calculates HSV values
+    colors_set = (
+        [25, Color.RED],
+        [56, Color.ORANGE],
+        [69, Color.YELLOW],
+        [169, Color.GREEN],
+        [274, Color.BLUE],
+        [319, Color.PURPLE],
+        [360, Color.RED]
+    )
 
-    colors_set = {
-        '#000000': None,
-        '#000001': Color.BLACK,
-        '#ffffff': Color.WHITE,
-        '#407340': Color.GREEN,
-        '#94ff94': Color.GREEN,
-        '#00ff00': Color.GREEN,
-        '#008004': Color.GREEN,
-        '#525294': Color.BLUE,
-        '#7f7fff': Color.BLUE,
-        '#0000ff': Color.BLUE,
-        '#000087': Color.BLUE,
-        '#808080': Color.GRAY,
-        '#994c00': Color.BROWN,
-        '#e1dd68': Color.YELLOW,
-        '#fffc7a': Color.YELLOW,
-        '#fff700': Color.YELLOW,
-        '#d2cb00': Color.YELLOW,
-        '#d8ac53': Color.ORANGE,
-        '#FFCC65': Color.ORANGE,
-        '#ffa500': Color.ORANGE,
-        '#d28c00': Color.ORANGE,
-        '#bc3c3c': Color.RED,
-        '#ff5050': Color.RED,
-        '#ff0000': Color.RED,
-        '#9a0000': Color.RED,
-        '#800080': Color.PURPLE
-    }
+    r0 = requested_color[0]
+    g0 = requested_color[1]
+    b0 = requested_color[2]
 
-    color_codes = {}
-    i = 0
+    r = r0 / 255
+    g = g0 / 255
+    b = b0 / 255
+    c_max = max(r, g, b)
+    c_min = min(r, g, b)
+    delta = c_max - c_min
 
-    # Makes sure alpha color and shape color are different.
-    if prev_color is not None:
-        for key, name in colors_set.items():
-            if name == prev_color:
-                color_codes[i] = key
-                i = i + 1
-        for i in color_codes:
-            del colors_set[color_codes[i]]
+    h = 0
+    s = 0
+    v = 0
+    if delta == 0:
+        h = 0
+    elif c_max == r:
+        h = 60 * (((g - b) / delta) % 6)
+    elif c_max == g:
+        h = 60 * (((b - r) / delta) + 2)
+    elif c_max == b:
+        h = 60 * (((r - g) / delta) + 4)
 
-    min_colors = {}
+    if c_max == 0:
+        s = 0
+    else:
+        s = delta / c_max
 
-    # Find closest color with a given RGB value.
-    for key, name in colors_set.items():
-        r_c, g_c, b_c = webcolors.hex_to_rgb(key)
-        rd = (r_c - requested_color[0]) ** 2
-        gd = (g_c - requested_color[1]) ** 2
-        bd = (b_c - requested_color[2]) ** 2
-        min_colors[(rd + gd + bd)] = name
+    v = c_max * 100
+    s *= 100
 
-    return min_colors[min(min_colors.keys())]
+    if 0 < v <= 25:
+        return Color.BLACK
+    elif 0 < s <= 20:
+        if 25 < v < 80:
+            return Color.GRAY
+        else:
+            return Color.WHITE
+
+    for i in range(len(colors_set)):
+        if h < colors_set[i][0]:
+            if colors_set[i][1] == Color.ORANGE:
+                if v < 60:
+                    return Color.BROWN
+                else:
+                    return colors_set[i][1]
+            else:
+                return colors_set[i][1]
+
+    return Color.NONE
