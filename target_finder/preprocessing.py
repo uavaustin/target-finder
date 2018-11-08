@@ -37,9 +37,9 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
     # invert the image and find connected regions
     ret, labels = cv2.connectedComponents((255 - edges), connectivity=8)
 
-    largest_label = -1 # the largest label (might not be > max_width)
+    largest_label = -1  # the largest label (might not be > max_width)
     largest_size = -1
-    large_labels = [] # all blobs to big to be a shape (> max_width)
+    large_labels = []  # all blobs to big to be a shape (> max_width)
 
     num_parts = np.max(labels) + 1
     for label in range(0, num_parts):
