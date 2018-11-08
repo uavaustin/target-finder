@@ -37,20 +37,39 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
     # invert the image and find connected regions
     ret, labels = cv2.connectedComponents((255 - edges), connectivity=8)
 
-    largest_label = -1
-    largest_cnt = -1
+    largest_label = -1 # the largest label (might not be > max_width)
+    largest_size = -1
+    large_labels = [] # all blobs to big to be a shape (> max_width)
 
-    num_parts = np.max(labels)
-    for label in range(1, num_parts):
-        cnt = np.count_nonzero(labels == label)
-        if cnt > largest_cnt:
+    num_parts = np.max(labels) + 1
+    for label in range(0, num_parts):
+
+        label_img = (labels == label)
+        size = np.count_nonzero(label_img)
+
+        if size > largest_size:
             largest_label = label
-            largest_cnt = cnt
+            largest_size = size
+
+        # extract bbox to find width and height
+        rows = np.any(label_img, axis=1)
+        cols = np.any(label_img, axis=0)
+        rmin, rmax = np.where(rows)[0][[0, -1]]
+        cmin, cmax = np.where(cols)[0][[0, -1]]
+        min_dim = min(rmax - rmin, cmax - cmin)
+        max_dim = max(rmax - rmin, cmax - cmin)
+
+        if min_dim < min_width or max_dim > max_width:
+            # hide this label
+            large_labels.append(label)
 
     # create binary b/w image
-    binary_thresh = np.array(edges)
-    binary_thresh[labels == largest_label] = 0
-    binary_thresh[labels != largest_label] = 255
+    binary_thresh = np.full(edges.shape, 0, np.uint8)
+
+    # highlight blob areas
+    for label in range(0, num_parts):
+        if label != large_labels and label not in large_labels:
+            binary_thresh[labels == label] = 255
 
     # erode so a blob cnt better fits its image
     binary_thresh = cv2.erode(binary_thresh, kernel, 1)
