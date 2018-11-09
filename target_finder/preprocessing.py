@@ -6,7 +6,7 @@ import numpy as np
 from .types import Blob
 
 
-def find_blobs(image, min_width=20, max_width=300, limit=100, padding=20):
+def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
     """Return the blobs found in an image.
 
     Note that by default, 100 blobs maximum will be returned, blobs

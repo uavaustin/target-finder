@@ -42,11 +42,13 @@ softmax_tensor = tf_session.graph.get_tensor_by_name('final_result:0')
 
 def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
     """Return the targets found in an image.
+    
     Targets are returned in the order of highest confidence. Once the
     limit is hit, classification will stop and just take the first
     ones.
     Either the image or blobs should be provided. If just passing in
     an image, all the defaults will be used when finding blobs.
+    
     Args:
         image (PIL.Image, optional): The image to use, this must be
             provided if no blobs are passed in.
@@ -58,6 +60,7 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
             use (0 <= confidence <= 1). Default is 0.85.
         limit (int, optional): The maximum number of targets to
             return.
+    
     Returns:
         List[Target]: The list of targets found.
     """
@@ -126,6 +129,7 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
 
 def _do_classify(blob, min_confidence):
     """Perform the classification on a blob.
+    
     Returns None if it's not a target.
     """
 
