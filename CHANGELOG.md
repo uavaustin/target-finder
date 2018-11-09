@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.3.1 (2018-10-12)
+
+### Fixes
+
+- Fixed an undefined reference to the `kernel` variable in the preprocessing.
+
+## v0.3.0 (2018-10-20)
+
+### Features
+
+- Added compatiblity for `target-finder-model` `v0.2.0`.
+- Added contour dilation and erosion to connect nearby contours.
+- Now using color area to find background and alphanumeric color.
+- Added a version flag to the cli.
+- Blobs and targets can now be serialized to strings for debugging and
+  printing.
+
+### Chores
+
+- Remove use of `FastGFile` per upcoming Tensorflow deprecation.
+
 ## v0.2.0 (2018-08-09)
 
 ### Features

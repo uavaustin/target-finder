@@ -31,6 +31,9 @@ def find_blobs(image, min_width=20, max_width=300, limit=100, padding=20):
     # Find the edges in the image.
     cv_image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
     edges = cv2.Canny(cv_image, 200, 500)
+    kernel = np.ones((3, 3), np.uint8)
+    edges = cv2.dilate(edges, kernel, 1)
+    edges = cv2.erode(edges, kernel, 1)
 
     # Find the contours according to the threshold.
     ret, thresh = cv2.threshold(edges, 127, 255, 0)
@@ -43,6 +46,7 @@ def find_blobs(image, min_width=20, max_width=300, limit=100, padding=20):
     # box, make sure it's not too small, and then go ahead and add to
     # the list of blobs.
     for cnt in contours:
+
         x, y, width, height = cv2.boundingRect(np.asarray(cnt))
         area = cv2.contourArea(cnt)
         perimeter = cv2.arcLength(cnt, True)
@@ -52,12 +56,16 @@ def find_blobs(image, min_width=20, max_width=300, limit=100, padding=20):
         else:
             has_mask = False
 
-        if (width < min_width or height < min_width or height >
-                max_width or width > max_width):
-            continue
+        # align the contour with the cropped image
+        rel_cnt = np.array(cnt)
+        rel_cnt[:, :, 0] -= max(x - padding, 0)
+        rel_cnt[:, :, 1] -= max(y - padding, 0)
 
         # Add the blob to the list without the image.
-        blobs.append(Blob(x, y, width, height, None, has_mask, cnt, edges))
+        blob = Blob(x, y, width, height, None, has_mask, rel_cnt, edges)
+
+        if _is_shape_like_blob(blob, min_width, max_width):
+            blobs.append(blob)
 
     # Sort the contours with the largest area first.
     blobs.sort(key=lambda b: b.width * b.height, reverse=True)
@@ -71,6 +79,34 @@ def find_blobs(image, min_width=20, max_width=300, limit=100, padding=20):
                                  blob.height, padding)
 
     return blobs
+
+
+def _is_shape_like_blob(blob, min_width, max_width):
+    """Verify that this could be a blob containing a shape"""
+    width = blob.width
+    height = blob.height
+
+    # check provided restrictions
+    if min(width, height) < min_width or max(width, height) > max_width:
+        return False
+
+    # TODO: Uncomment once "Close contours for masking images" is complete
+    # must be closed cnt
+    # if not blob.has_mask:
+    #     return False
+
+    # check bbox ratio
+    size_ratio = max(width, height) / min(width, height)
+    if size_ratio > 2:
+        return False
+
+    # check solidity
+    hull = cv2.convexHull(blob.cnt)
+    solidity = cv2.contourArea(blob.cnt) / cv2.contourArea(hull)
+    if solidity < .65:
+        return False
+
+    return True
 
 
 def _crop_image(image, x, y, width, height, padding):
