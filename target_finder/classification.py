@@ -117,11 +117,9 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
             check8 = bound_y_top1 <= bound_y_bottom2
             if check1 and check2:
                 if check5 and check6:
-                    print("current target within other target")
                     targets.remove(target)
             elif check3 and check4:
                 if check7 and check8:
-                    print("previous target is within current target")
                     targets.remove(targets[i])
     return targets
 
