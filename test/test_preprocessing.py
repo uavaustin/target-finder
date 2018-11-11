@@ -39,9 +39,11 @@ def test_find_blobs():
     for name, expected_blob in TESTS:
 
         image = PIL.Image.open(os.path.join(SHAPES_DIR, name))
-        blob = find_blobs(image)[0]
+        blobs = find_blobs(image)
 
-        _assert_blobs_match(name, blob, expected_blob)
+        assert len(blobs) > 0, f'{name} has no blobs'
+
+        _assert_blobs_match(name, blobs[0], expected_blob)
 
 
 def _assert_blobs_match(name, blob, expected_blob, thres=8):
