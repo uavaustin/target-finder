@@ -31,12 +31,14 @@ TESTS = [
         Blob(x=10, y=12, width=59, height=58, has_mask=True))
 ]
 
+SHAPES_DIR = os.path.join(os.path.dirname(__file__), 'perfect_shapes')
+
 
 def test_find_blobs():
 
     for name, expected_blob in TESTS:
 
-        image = PIL.Image.open(os.path.join('test', 'perfect_shapes', name))
+        image = PIL.Image.open(os.path.join(SHAPES_DIR, name))
         blob = find_blobs(image)[0]
 
         _assert_blobs_match(name, blob, expected_blob)
