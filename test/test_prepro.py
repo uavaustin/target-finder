@@ -7,7 +7,7 @@ from target_finder.preprocessing import find_blobs
 from target_finder.types import Blob
 
 TESTS = [
-    ('quartercircle.jpg', Blob(x=11, y=13, width=60, height=59, has_mask=True)),
+    ('quartcircle.jpg', Blob(x=11, y=13, width=60, height=59, has_mask=True)),
     ('semicircle.jpg', Blob(x=10, y=28, width=60, height=31, has_mask=True)),
     ('circle.jpg', Blob(x=10, y=10, width=61, height=62, has_mask=True)),
     ('triangle.jpg', Blob(x=12, y=15, width=58, height=52, has_mask=True)),
