@@ -33,11 +33,49 @@ def find_blobs(image, min_width=20, max_width=100, limit=100, padding=20):
     edges = cv2.Canny(cv_image, 200, 500)
     kernel = np.ones((3, 3), np.uint8)
     edges = cv2.dilate(edges, kernel, 1)
-    edges = cv2.erode(edges, kernel, 1)
 
-    # Find the contours according to the threshold.
-    ret, thresh = cv2.threshold(edges, 127, 255, 0)
-    _, contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
+    # invert the image and find connected regions
+    ret, labels = cv2.connectedComponents((255 - edges), connectivity=8)
+
+    largest_label = -1  # the largest label (might not be > max_width)
+    largest_size = -1
+    large_labels = []  # all blobs to big to be a shape (> max_width)
+
+    num_parts = np.max(labels) + 1
+    for label in range(0, num_parts):
+
+        label_img = (labels == label)
+        size = np.count_nonzero(label_img)
+
+        if size > largest_size:
+            largest_label = label
+            largest_size = size
+
+        # extract bbox to find width and height
+        rows = np.any(label_img, axis=1)
+        cols = np.any(label_img, axis=0)
+        rmin, rmax = np.where(rows)[0][[0, -1]]
+        cmin, cmax = np.where(cols)[0][[0, -1]]
+        min_dim = min(rmax - rmin, cmax - cmin)
+        max_dim = max(rmax - rmin, cmax - cmin)
+
+        if min_dim < min_width or max_dim > max_width:
+            # hide this label
+            large_labels.append(label)
+
+    # create binary b/w image
+    binary_thresh = np.full(edges.shape, 0, np.uint8)
+
+    # highlight blob areas
+    for label in range(0, num_parts):
+        if label != large_labels and label not in large_labels:
+            binary_thresh[labels == label] = 255
+
+    # erode so a blob cnt better fits its image
+    binary_thresh = cv2.erode(binary_thresh, kernel, 1)
+
+    # generate contours
+    _, contours, _ = cv2.findContours(binary_thresh, cv2.RETR_EXTERNAL,
                                       cv2.CHAIN_APPROX_SIMPLE)
 
     blobs = []
