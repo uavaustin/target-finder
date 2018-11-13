@@ -99,7 +99,7 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
     targets.sort(key=lambda t: t.confidence, reverse=True)
 
     # Iterate through targets and remove any targets
-    # with coordinates within another target in the list. 
+    # with coordinates within another target in the list.
     for target_num, target in enumerate(targets):
         for i in range(target_num + 1, len(targets)):
 
@@ -114,14 +114,14 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
             bound_y_top2 = targets[i].y
             bound_y_bottom2 = targets[i].y + targets[i].height
 
-            # Checks for if the first current target is 
+            # Checks for if the first current target is
             # within a target from the list.
             check1 = bound_x_left1 <= bound_x_left2
             check2 = bound_x_left2 <= bound_x_right1
             check3 = bound_x_left2 <= bound_x_left1
             check4 = bound_x_left1 <= bound_x_right2
 
-            # Checks for if the target from the list is 
+            # Checks for if the target from the list is
             # within the current target.
             check5 = bound_y_top1 <= bound_y_top2
             check6 = bound_y_top2 <= bound_y_bottom1
