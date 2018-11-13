@@ -102,8 +102,8 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
     # with coordinates within another target in the list. 
     for target_num, target in enumerate(targets):
         for i in range(target_num + 1, len(targets)):
-        	
-        	# Finds the bounds for targets based on x, y, width, and height.
+
+            # Finds the bounds for targets based on x, y, width, and height.
             bound_x_left1 = target.x
             bound_x_right1 = target.x + target.width
             bound_y_top1 = target.y
@@ -113,7 +113,7 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
             bound_x_right2 = targets[i].x + targets[i].width
             bound_y_top2 = targets[i].y
             bound_y_bottom2 = targets[i].y + targets[i].height
-            
+
             # Checks for if the first current target is 
             # within a target from the list.
             check1 = bound_x_left1 <= bound_x_left2
@@ -127,7 +127,7 @@ def find_targets(image=None, blobs=None, min_confidence=0.85, limit=10):
             check6 = bound_y_top2 <= bound_y_bottom1
             check7 = bound_y_top2 <= bound_y_top1
             check8 = bound_y_top1 <= bound_y_bottom2
-            
+
             # If it meets the given conditions, remove the inner target.
             if check1 and check2:
                 if check5 and check6:
