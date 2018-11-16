@@ -6,7 +6,7 @@ import os
 from target_finder.classification import find_targets
 from target_finder.types import Target, Shape, Color
 
-REQUIRED_CORRECT = 0.60  # accuracy required to pass build
+REQUIRED_CORRECT = 0.35  # accuracy required to pass build
 
 TESTS = [
     ('quarter_circle.jpg',
@@ -39,11 +39,21 @@ TESTS = [
                orientation=0.0, confidence=1,
                shape=Shape.SQUARE, background_color=Color.BLUE,
                alphanumeric='U', alphanumeric_color=Color.GREEN)),
+    ('rectangle.jpg',
+        Target(x=17, y=27, width=47, height=28,
+               orientation=0.0, confidence=1,
+               shape=Shape.RECTANGLE, background_color=Color.GREEN,
+               alphanumeric='L', alphanumeric_color=Color.PURPLE)),
     ('star.jpg',
         Target(x=12, y=13, width=56, height=51,
                orientation=0.0, confidence=1,
                shape=Shape.STAR, background_color=Color.ORANGE,
                alphanumeric='R', alphanumeric_color=Color.RED)),
+    ('cross.jpg',
+        Target(x=17, y=17, width=47, height=47,
+               orientation=0.0, confidence=1,
+               shape=Shape.CROSS, background_color=Color.RED,
+               alphanumeric='L', alphanumeric_color=Color.PURPLE)),
     ('pentagon.jpg',
         Target(x=13, y=13, width=56, height=54,
                orientation=0.0, confidence=1,
@@ -83,6 +93,7 @@ def test_find_blobs():
         if _targets_diff(name, targets[0], expected_target):
             wrong.append((name, expected_target))
 
+    # check accuracy before passing/failing builds
     accuracy = 1 - len(wrong) / len(TESTS)
 
     if accuracy < REQUIRED_CORRECT:
@@ -101,7 +112,17 @@ def _targets_diff(name, target, expected_target, thres=8):
         target.height - expected_target.height
     ]
 
-    # check if any param is off by as much as `thres`
-    diff = any(map(lambda d: abs(d) > thres, params))
+    features = [
+        target.shape == expected_target.shape,
+        target.background_color == expected_target.background_color,
+        # target.alphanumeric == expected_target.alphanumeric,
+        target.alphanumeric_color == expected_target.alphanumeric_color
+    ]
 
-    return diff
+    # check if any param is off by as much as `thres`
+    diff_params = any(map(lambda d: abs(d) > thres, params))
+
+    # check if any features diff
+    diff_features = not all(features)
+
+    return diff_params or diff_features
