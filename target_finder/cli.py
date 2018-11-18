@@ -56,6 +56,9 @@ target_parser.add_argument('--limit', type=int, dest='limit', action='store',
                            default=10, help='maximum number of blobs to find '
                                             'per image (default: 10)')
 
+# Parser for the benchmark subcommand.
+bench_parser = subparsers.add_parser('benchmark', help='run target benchmarks')
+
 
 def run(args=None):
     """Dispatch the correct subcommand."""
@@ -133,6 +136,11 @@ def run_targets(args):
             target_num += 1
 
 
+def run_benchmarks(args):
+    """Run benchmark command"""
+    pass
+
+
 def _list_images(filenames):
     """Turn the list of filenames into a list of images."""
     images = []
@@ -187,4 +195,5 @@ def _save_target_meta(filename_meta, filename_image, target):
 # not provided, print the usage message and set the exit code to 1.
 blob_parser.set_defaults(func=run_blobs)
 target_parser.set_defaults(func=run_targets)
+bench_parser.set_defaults(func=run_benchmarks)
 parser.set_defaults(func=lambda _: parser.print_usage() or sys.exit(1))

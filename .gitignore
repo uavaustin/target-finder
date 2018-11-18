@@ -115,3 +115,6 @@ ENV/
 
 # Output from the prepare-release.sh script
 /release/
+
+# Benchmarks
+.bench
