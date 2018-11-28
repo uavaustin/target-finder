@@ -11,6 +11,7 @@ import target_finder_model
 
 from .classification import find_targets
 from .preprocessing import find_blobs
+from .benchmark import run_benchmarks
 from .version import __version__
 
 
@@ -136,9 +137,9 @@ def run_targets(args):
             target_num += 1
 
 
-def run_benchmarks(args):
+def run_bench(args):
     """Run benchmark command"""
-    pass
+    run_benchmarks()
 
 
 def _list_images(filenames):
@@ -195,5 +196,5 @@ def _save_target_meta(filename_meta, filename_image, target):
 # not provided, print the usage message and set the exit code to 1.
 blob_parser.set_defaults(func=run_blobs)
 target_parser.set_defaults(func=run_targets)
-bench_parser.set_defaults(func=run_benchmarks)
+bench_parser.set_defaults(func=run_bench)
 parser.set_defaults(func=lambda _: parser.print_usage() or sys.exit(1))
