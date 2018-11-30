@@ -2,6 +2,7 @@
 from target_finder.classification import find_targets
 from target_finder.types import Target, Shape, Color
 
+import urllib.request
 import numpy as np
 import random
 import PIL.Image
@@ -12,24 +13,10 @@ import os
 
 SHAPES_DIR = os.path.join(os.path.dirname(__file__), 'data')
 SHAPES_ZIP = os.path.join(os.path.dirname(__file__), 'bench.zip')
-
-
-HEADER = """
- __    __       ___   ____    ____  ___
-|  |  |  |     /   \\  \\   \\  /   / /   \\
-|  |  |  |    /  ^  \\  \\   \\/   / /  ^  \\
-|  |  |  |   /  /_\\  \\  \\      / /  /_\\  \\
-|  `--'  |  /  _____  \\  \\    / /  _____  \\
- \\______/  /__/     \\__\\  \\__/ /__/     \\__\\
-
-B E N C H M A R K S
-
-"""
+DATA_URL = 'https://bin.org/download/file'
 
 
 def run_benchmarks(max_shapes=-1, shuffle=True):
-
-    print(HEADER)
 
     _ensure_bench_data()
 
@@ -177,7 +164,7 @@ def _ensure_bench_data():
 
         print('fetching...', end='')
 
-        # TODO: download zip
+        urllib.request.urlretrieve(DATA_URL, SHAPES_ZIP)
 
         zip_ref = zipfile.ZipFile(SHAPES_ZIP, 'r')
         zip_ref.extractall(SHAPES_DIR)
