@@ -117,4 +117,4 @@ ENV/
 /release/
 
 # Benchmarks
-.bench
+bench/data

@@ -9,10 +9,9 @@ import zipfile
 import time
 import os
 
-BENCHMARK_DIR = '.bench'
 
-SHAPES_DIR = os.path.join(BENCHMARK_DIR, 'shapes')
-SHAPES_ZIP = os.path.join(BENCHMARK_DIR, 'bench.zip')
+SHAPES_DIR = os.path.join(os.path.dirname(__file__), 'data')
+SHAPES_ZIP = os.path.join(os.path.dirname(__file__), 'bench.zip')
 
 
 HEADER = """
@@ -173,7 +172,6 @@ def _ensure_bench_data():
     """Ensure that there is data to benchmark"""
 
     print('Locating data...', end='')
-    os.makedirs(BENCHMARK_DIR, exist_ok=True)
 
     if not os.path.isdir(SHAPES_DIR):
 
@@ -186,3 +184,7 @@ def _ensure_bench_data():
         zip_ref.close()
 
     print('done.')
+
+
+if __name__ == "__main__":
+    run_benchmarks()
