@@ -7,7 +7,7 @@ from target_finder.classification import _get_color, _get_color_name
 from target_finder.classification import find_blobs
 from target_finder.types import Color
 
-REQUIRED_CORRECT = 0.8  # accuracy required to pass build
+REQUIRED_CORRECT = 0.9  # accuracy required to pass build
 
 TESTS = [
     ('quarter_circle.jpg', Color.YELLOW, Color.PURPLE),
@@ -22,7 +22,7 @@ TESTS = [
     ('pentagon.jpg', Color.BLUE, Color.ORANGE),
     ('hexagon.jpg', Color.WHITE, Color.RED),
     ('heptagon.jpg', Color.PURPLE, Color.GREEN),
-    ('octagon.jpg', Color.BLUE, Color.ORANGE)
+    ('octagon.jpg', Color.BLUE, Color.RED)
 ]
 
 SHAPES_DIR = os.path.join(os.path.dirname(__file__), 'perfect_shapes')
