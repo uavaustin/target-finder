@@ -103,7 +103,7 @@ def _is_shape_like_blob(blob, min_width, max_width):
     # check solidity
     hull = cv2.convexHull(blob.cnt)
     solidity = cv2.contourArea(blob.cnt) / cv2.contourArea(hull)
-    if solidity < .65:
+    if solidity < .5:
         return False
 
     return True
