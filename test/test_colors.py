@@ -1,7 +1,9 @@
 """Testing colors from target_finder/classification."""
 
-import PIL.Image
 import os
+import warnings
+
+import PIL.Image
 
 from target_finder.classification import _get_color, _get_color_name
 from target_finder.classification import find_blobs
@@ -53,8 +55,13 @@ def test_colors():
     # check accuracy before passing/failing builds
     accuracy = 1 - len(wrong) / len(TESTS)
 
-    if accuracy < REQUIRED_CORRECT:
-        assert_msg = f'Colors {round(accuracy * 100, 2)}% correct.'
+    if len(wrong):
+        message = f'Colors {round(accuracy * 100, 2)}% correct.'
         for name, actual, expected in wrong:
-            assert_msg += f'\n{actual} does not match {expected} for {name}.'
-        raise AssertionError(assert_msg)
+            message += f'\n{actual} does not match {expected} for {name}.'
+
+        if accuracy < REQUIRED_CORRECT:
+            raise AssertionError(message)
+        else:
+            message += f'\nThis still meets the {REQUIRED_CORRECT} threshold.'
+            warnings.warn(message)
