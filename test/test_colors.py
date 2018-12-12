@@ -45,16 +45,16 @@ def test_colors():
         secondary = _get_color_name(secondary_rgb, primary)
 
         if primary != expected_bg:
-            wrong.append((primary_rgb, expected_bg))
+            wrong.append((name, primary, expected_bg))
 
         if secondary != expected_alpha:
-            wrong.append((secondary_rgb, expected_alpha))
+            wrong.append((name, secondary, expected_alpha))
 
     # check accuracy before passing/failing builds
     accuracy = 1 - len(wrong) / len(TESTS)
 
     if accuracy < REQUIRED_CORRECT:
         assert_msg = f'Colors {round(accuracy * 100, 2)}% correct.'
-        for actual, expected in wrong:
-            assert_msg += f'\n{actual} does not match {expected}.'
+        for name, actual, expected in wrong:
+            assert_msg += f'\n{actual} does not match {expected} for {name}.'
         raise AssertionError(assert_msg)
