@@ -88,7 +88,7 @@ TESTS = [
                alphanumeric='U', alphanumeric_color=Color.ORANGE))
 ]
 
-SHAPES_DIR = os.path.join(os.path.dirname(__file__), 'perfect_shapes')
+SHAPES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 
 
 # All the found targets are done before the assertions. Only run
