@@ -35,7 +35,7 @@ TESTS = [
         Blob(x=10, y=12, width=59, height=58, has_mask=True))
 ]
 
-SHAPES_DIR = os.path.join(os.path.dirname(__file__), 'perfect_shapes')
+SHAPES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 
 
 def test_find_blobs():
