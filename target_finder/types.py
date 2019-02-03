@@ -50,46 +50,24 @@ class Shape(Enum):
     CROSS          = 13
 
 
-class Blob(object):
-    """Represents a blob with a possible target.
+class BBox(object):
 
-    This is for the middle stage before the target is identified.
+    def __init__(self, x1, y1, x2, y2):
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+        self.image = None
+        self.meta = ''
+        self.confidence = -1
 
-    This may be returned back by the library if only blobs are being
-    requested. This could be so that the logic is being seperated out
-    externally.
+    @property
+    def w(self):
+        return self.x2 - self.x1
 
-    Attributes:
-        x (int): The x position of the top-left corner in pixels.
-        y (int): The y position of the top-left corner in pixels.
-        width (int): The width of the blob in pixels.
-        height (int): The height of the blob in pixels.
-        image (PIL.Image): Image for the blob.
-        has_mask (bool): False if contour is open, true if contour is closed.
-        cnt (array): Contour associated with blob
-        edges (numpy.nparray): Edge image used for alpha classification.
-    """
-
-    def __init__(self, x, y, width, height, image=None, has_mask=False,
-                 cnt=None, edges=None):
-        """Create a new Blob object."""
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.image = image
-        self.has_mask = has_mask
-        self.cnt = cnt
-        self.edges = edges
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self):
-        return (
-            f'Blob(x={self.x}, y={self.y}, width={self.width}, '
-            f'height={self.height}, has_mask={self.has_mask})'
-        )
+    @property
+    def h(self):
+        return self.y2 - self.y1
 
 
 class Target(object):
