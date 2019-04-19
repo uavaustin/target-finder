@@ -119,6 +119,18 @@ class Target(object):
         self.image = image
         self.confidence = confidence
 
+    def overlaps(self, other_target):
+
+        if (self.x > other_target.x + other_target.width or
+           other_target.x > self.x + self.width):
+            return False
+
+        if (self.y > other_target.y + other_target.height or
+           other_target.y > self.y + self.height):
+            return False
+
+        return True
+
     def __repr__(self):
         return str(self)
 

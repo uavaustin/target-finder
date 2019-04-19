@@ -27,9 +27,9 @@ def set_models(new_models):
     models.update(new_models)
 
 
-def find_targets(image, limit=20):
+def find_targets(pil_image, limit=20):
 
-    image_ary = cv2.imread(image)
+    image_ary = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
 
     raw_bboxes = _run_models(image_ary)
     targets = _bboxes_to_targets(raw_bboxes)
@@ -49,6 +49,7 @@ def _run_models(image):
     crops = extract_crops(image, tfm.CROP_SIZE, tfm.CROP_OVERLAP)
 
     clf_crops = resize_all(crops, tfm.PRECLF_SIZE)
+
     regions = clf_model.classify_all([box.image for box in clf_crops])
 
     filtered_crops = [crops[i] for i, region in enumerate(regions)
