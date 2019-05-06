@@ -30,7 +30,7 @@ target_parser.add_argument('--min-confidence', type=float, action='store',
                            default=0.85, help='confidence level for '
                                               'classification (default: 0.85)')
 target_parser.add_argument('--limit', type=int, dest='limit', action='store',
-                           default=10, help='maximum number of targets to find '
+                           default=10, help='max number of targets to find '
                                             'per image (default: 10)')
 
 
@@ -67,7 +67,7 @@ def run_targets(args):
 
         image = cv2.imread(filename)
 
-        targets = find_targets(image, limit=args.limit)
+        targets = find_targets_from_array(image, limit=args.limit)
 
         # Save each target found with an incrementing number.
         for target in targets:

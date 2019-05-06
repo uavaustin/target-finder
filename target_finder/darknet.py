@@ -47,6 +47,10 @@ class Yolo3Detector(DarknetModel):
         if len(images) == 0:
             return []
 
+        elif len(images) == 1:
+            # OpenCV Darknet doesnt like lonely inputs
+            images = [images[0], np.copy(images[0])]
+
         h, w, _ = images[0].shape
         n = len(images)
         num_classes = len(self.classes)

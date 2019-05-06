@@ -137,6 +137,9 @@ def _test_targets(actual_targets, expected_targets):
                     correct_shapes, correct_alphas]
     overall_acc = sum([v / len(actual_targets) for v in correct_cnts]) / 4
 
+    print('Accuracy - Found: {}%, Classification: {}%'
+          .format(found_acc * 100, overall_acc * 100))
+
     assert found_acc > 0.90
     assert overall_acc > 0.40  # set low due to poor color classification
 

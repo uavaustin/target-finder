@@ -14,7 +14,7 @@ import target_finder_model as tfm
 from .darknet import Yolo3Detector, PreClassifier
 from .preprocessing import extract_crops, resize_all, extract_contour
 from .types import Color, Shape, Target, BBox
-
+from .color_cube import ColorCube
 
 # Default Models w/default weights
 models = {
@@ -27,9 +27,13 @@ def set_models(new_models):
     models.update(new_models)
 
 
-def find_targets(pil_image, limit=20):
-
+def find_targets(pil_image, **kwargs):
+    """Wrapper for finding targets which accepts a PIL image"""
     image_ary = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+    return find_targets_from_array(image_ary, **kwargs)
+
+
+def find_targets_from_array(image_ary, limit=20):
 
     raw_bboxes = _run_models(image_ary)
     targets = _bboxes_to_targets(raw_bboxes)
@@ -57,8 +61,12 @@ def _run_models(image):
 
     detector_crops = resize_all(filtered_crops, tfm.DETECTOR_SIZE)
 
-    offset_bboxes = detector_model.detect_all([box.image
-                                               for box in detector_crops])
+    try:
+        offset_bboxes = detector_model.detect_all([box.image
+                                                   for box in detector_crops])
+    except IndexError:
+        print('Error processing Darknet output...assuming no shapes detected.')
+        offset_bboxes = []
 
     ratio = tfm.DETECTOR_SIZE[0] / tfm.CROP_SIZE[0]
     normalized_bboxes = []
@@ -215,24 +223,25 @@ def _find_main_colors(image, contour):
 
 
 def _get_color_name(requested_color):
-    # Calculates HSV values
-    colors_set = (
-        [25, Color.RED],
-        [56, Color.ORANGE],
-        [69, Color.YELLOW],
-        [169, Color.GREEN],
-        [274, Color.BLUE],
-        [319, Color.PURPLE],
-        [360, Color.RED]
-    )
 
-    r0 = requested_color[0]
-    g0 = requested_color[1]
-    b0 = requested_color[2]
+    # ColorCube((Hl, sl, vl), (Hu, Su, Vu))
+    color_cubes = {
+        "white": ColorCube((0, 0, 85), (359, 20, 100)),
+        "black": ColorCube((0, 0, 0), (359, 100, 25)),
+        "gray": ColorCube((0, 0, 25), (359, 5, 75)),
+        "blue": ColorCube((180, 70, 70), (345, 100, 100)),
+        "red": ColorCube((350, 70, 70), (359, 100, 65)),
+        "green": ColorCube((100, 60, 30), (160, 100, 100)),
+        "yellow": ColorCube((60, 50, 55), (75, 100, 100)),
+        "purple": ColorCube((230, 40, 55), (280, 100, 100)),
+        "brown": ColorCube((300, 38, 20), (359, 100, 40)),
+        "orange": ColorCube((15, 70, 75), (45, 100, 100))
+    }
 
-    r = r0 / 255
-    g = g0 / 255
-    b = b0 / 255
+    r = requested_color[0] / 255
+    g = requested_color[1] / 255
+    b = requested_color[2] / 255
+
     c_max = max(r, g, b)
     c_min = min(r, g, b)
     delta = c_max - c_min
@@ -253,26 +262,19 @@ def _get_color_name(requested_color):
         s = 0
     else:
         s = delta / c_max
-
     v = c_max * 100
     s *= 100
 
-    if 0 < v <= 25:
-        return Color.BLACK
-    elif 0 < s <= 20:
-        if 25 < v < 80:
-            return Color.GRAY
-        else:
-            return Color.WHITE
-
-    for i in range(len(colors_set)):
-        if h < colors_set[i][0]:
-            if colors_set[i][1] == Color.ORANGE:
-                if v < 60:
-                    return Color.BROWN
-                else:
-                    return colors_set[i][1]
-            else:
-                return colors_set[i][1]
+    contains = [color_cubes[key].contains((h, s, v)) for key in color_cubes]
+    if not any(contains):
+        cl_dists = [color_cubes[key].get_closest_distance((h, s, v))
+                    for key in color_cubes]
+        dist = [np.sqrt((p[0] * p[0]) + (p[1] * p[1]) + (p[2] * p[2]))
+                for p in cl_dists]
+        index = dist.index(min(dist)) + 1
+        return Color(index)
+    else:
+        index = contains.index(True) + 1
+        return Color(index)
 
     return Color.NONE
