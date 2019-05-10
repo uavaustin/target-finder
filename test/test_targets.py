@@ -86,6 +86,12 @@ TESTS = [
                confidence=1,
                shape=Shape.SQUARE, background_color=Color.BLUE,
                alphanumeric='unk', alphanumeric_color=Color.NONE)
+    ]),
+    ('real-2.jpg', [
+        Target(x=1609, y=479, width=88, height=84, orientation=0.0,
+               confidence=1,
+               shape=Shape.TRIANGLE, background_color=Color.ORANGE,
+               alphanumeric='I', alphanumeric_color=Color.WHITE)
     ])
 ]
 
@@ -110,24 +116,23 @@ def _test_targets(actual_targets, expected_targets):
 
         for actual_target in actual_targets:
 
-            if not expected_target.overlaps(actual_target):
-                continue
+            if expected_target.overlaps(actual_target):
 
-            found += 1
+                found += 1
 
-            if _correct_bbox(expected_target, actual_target):
-                correct_bbox += 1
+                if _correct_bbox(expected_target, actual_target):
+                    correct_bbox += 1
 
-            if _correct_color(expected_target, actual_target):
-                correct_colors += 1
+                if _correct_color(expected_target, actual_target):
+                    correct_colors += 1
 
-            if _correct_alpha(expected_target, actual_target):
-                correct_alphas += 1
+                if _correct_alpha(expected_target, actual_target):
+                    correct_alphas += 1
 
-            if _correct_shape(expected_target, actual_target):
-                correct_shapes += 1
+                if _correct_shape(expected_target, actual_target):
+                    correct_shapes += 1
 
-            break
+                break
 
     # Fraction of targets found
     found_acc = found / len(actual_targets)

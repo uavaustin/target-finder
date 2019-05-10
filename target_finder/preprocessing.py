@@ -11,9 +11,15 @@ def extract_crops(image, size, overlap):
 
     crops = []
 
-    for y1 in range(0, h - size[0], size[0] - overlap):
+    for y1 in range(0, h, size[0] - overlap):
 
-        for x1 in range(0, w - size[1], size[1] - overlap):
+        for x1 in range(0, w, size[1] - overlap):
+
+            if y1 + size[0] > h:
+                y1 = h - size[0]
+
+            if x1 + size[1] > w:
+                x1 = w - size[1]
 
             y2 = y1 + size[0]
             x2 = x1 + size[1]
@@ -41,11 +47,24 @@ def resize_all(image_crops, new_size):
     return new_crops
 
 
-def extract_contour(image):
+def extract_contour(img):
 
-    edges = cv2.Canny(image, 200, 500)
-    ret, thresh = cv2.threshold(edges, 127, 255, 0)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL,
+    h, w, _ = img.shape
+
+    # Seperate foreground w/YOLO's bbox as reference
+    mask = np.zeros((h, w), np.uint8)
+    bgdModel = np.zeros((1, 65), np.float64)
+    fgdModel = np.zeros((1, 65), np.float64)
+    bbox = (24, 24, w - 52, h - 52)
+    cv2.grabCut(img, mask, bbox, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_RECT)
+
+    # Extract shape using foreground mask
+    mask_fg = np.where((mask == 2) | (mask == 0), 0, 1)
+    img_fg = (img * mask_fg[:, :, np.newaxis]).astype('uint8')
+
+    # Create binary contour
+    ret, thresh = cv2.threshold(img_fg, 10, 255, 0)
+    contours, _ = cv2.findContours(thresh[:, :, 0], cv2.RETR_EXTERNAL,
                                    cv2.CHAIN_APPROX_SIMPLE)
 
     main_contour = None

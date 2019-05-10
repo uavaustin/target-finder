@@ -40,7 +40,7 @@ def find_targets_from_array(image_ary, limit=20):
 
     # Sorting with highest confidence first.
     targets.sort(key=lambda t: t.confidence, reverse=True)
-    _identify_colors(targets, image_ary)
+    _identify_properties(targets, image_ary)
 
     return targets[:limit]
 
@@ -116,7 +116,7 @@ def _get_shape_and_alpha(box):
 
     # convert name to object
     if best_shape == 'unk':
-        shape = None
+        shape = Shape.NAS
     else:
         shape = Shape[best_shape.upper().replace('-', '_')]
 
@@ -155,20 +155,26 @@ def _enlarge(main_box, new_box):
     main_box.y2 = max(main_box.y2, new_box.y2)
 
 
-def _identify_colors(targets, full_image, padding=15):
+def _identify_properties(targets, full_image, padding=15):
 
     for target in targets:
+
         x = int(target.x) - padding
         y = int(target.y) - padding
         w = int(target.width) + padding * 2
         h = int(target.height) + padding * 2
         blob_image = full_image[y:y + h, x:x + w]
+
+        img = PIL.Image.fromarray(cv2.cvtColor(blob_image, cv2.COLOR_BGR2RGB))
+        target.image = img
+
         try:
             target_color, alpha_color = _get_colors(blob_image)
             target.background_color = target_color
             target.alphanumeric_color = alpha_color
         except cv2.error:
-            pass
+            target.background_color = Color.NONE
+            target.alphanumeric_color = Color.NONE
 
 
 def _get_colors(image):
