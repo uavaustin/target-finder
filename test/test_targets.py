@@ -150,8 +150,12 @@ def _test_targets(actual_targets, expected_targets):
 
 
 def _correct_color(target_a, target_b):
-    return (target_a.background_color == target_b.background_color and
-            target_a.alphanumeric_color == target_b.alphanumeric_color)
+    score = 0
+    if target_a.background_color == target_b.background_color:
+        score += 0.5
+    if target_a.alphanumeric_color == target_b.alphanumeric_color:
+        score += 0.5
+    return score
 
 
 def _correct_shape(target_a, target_b):
