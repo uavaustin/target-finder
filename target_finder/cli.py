@@ -4,13 +4,11 @@ import argparse
 import json
 import os
 import sys
+import cv2
 
-import PIL.Image
-import tensorflow as tf
-import target_finder_model
+import target_finder_model as tfm
 
 from .classification import find_targets
-from .preprocessing import find_blobs
 from .version import __version__
 
 
@@ -19,27 +17,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-v', '--version', action='store_true',
                     help='show the version and exit')
 subparsers = parser.add_subparsers(dest='subcommand', title='subcommands')
-
-# Parser for the blobs subcommand.
-blob_parser = subparsers.add_parser('blobs', help='finds the interesting '
-                                                  'blobs in images')
-blob_parser.add_argument('filename', type=str, nargs='+',
-                         help='the images or image directories')
-blob_parser.add_argument('-o', '--output', type=str, action='store',
-                         default='.', help='output directory (defaults to '
-                                           'current dir)')
-blob_parser.add_argument('--min-width', type=int, action='store', default=20,
-                         help='minimum width a blob must be in the horizontal '
-                              'and vertical directions (default: 20)')
-blob_parser.add_argument('--max-width', type=int, action='store', default=100,
-                         help='maximum width a blob can be in the horizontal '
-                              'and vertical directions (default: 100)')
-blob_parser.add_argument('--limit', type=int, dest='limit', action='store',
-                         default=100, help='maximum number of blobs to find '
-                                           'per image (default: 100)')
-blob_parser.add_argument('--padding', type=int, action='store', default=20,
-                         help='how much space to leave around blobs on each '
-                              'side (default: 20 pixels)')
 
 # Parser for the targets subcommand.
 target_parser = subparsers.add_parser('targets', help='finds the targets in '
@@ -53,7 +30,7 @@ target_parser.add_argument('--min-confidence', type=float, action='store',
                            default=0.85, help='confidence level for '
                                               'classification (default: 0.85)')
 target_parser.add_argument('--limit', type=int, dest='limit', action='store',
-                           default=10, help='maximum number of blobs to find '
+                           default=10, help='max number of targets to find '
                                             'per image (default: 10)')
 
 
@@ -70,37 +47,13 @@ def run(args=None):
 
 
 def print_version():
-    if hasattr(target_finder_model, '__version__'):
-        model_version = target_finder_model.__version__
+    if hasattr(tfm, '__version__'):
+        model_version = tfm.__version__
     else:
         model_version = '0.1.0'
 
     print(f'target-finder v{__version__} with target-finder-model '
           f'v{model_version} (tensorflow v{tf.__version__})')
-
-
-def run_blobs(args):
-    """Run the blobs subcommand."""
-    blob_num = 0
-
-    # Create the output directory if it doesn't already exist.
-    os.makedirs(args.output, exist_ok=True)
-
-    for filename in _list_images(args.filename):
-        image = PIL.Image.open(filename)
-
-        blobs = find_blobs(image, min_width=args.min_width,
-                           max_width=args.max_width, limit=args.limit,
-                           padding=args.padding)
-
-        # Save each blob found with an incrementing number.
-        for blob in blobs:
-            print('Saving blob #{:06d} from {:s}'.format(blob_num, filename))
-
-            basename = 'blob-{:06d}.jpg'.format(blob_num)
-            blob.image.save(os.path.join(args.output, basename))
-
-            blob_num += 1
 
 
 def run_targets(args):
@@ -111,10 +64,10 @@ def run_targets(args):
     os.makedirs(args.output, exist_ok=True)
 
     for filename in _list_images(args.filename):
-        image = PIL.Image.open(filename)
 
-        targets = find_targets(image, min_confidence=args.min_confidence,
-                               limit=args.limit)
+        image = cv2.imread(filename)
+
+        targets = find_targets_from_array(image, limit=args.limit)
 
         # Save each target found with an incrementing number.
         for target in targets:
@@ -185,6 +138,5 @@ def _save_target_meta(filename_meta, filename_image, target):
 
 # Set the functions to run for each subcommand. If a subcommand was
 # not provided, print the usage message and set the exit code to 1.
-blob_parser.set_defaults(func=run_blobs)
 target_parser.set_defaults(func=run_targets)
 parser.set_defaults(func=lambda _: parser.print_usage() or sys.exit(1))

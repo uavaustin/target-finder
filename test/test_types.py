@@ -3,21 +3,7 @@
 import PIL.Image
 import pytest
 
-from target_finder import Blob, Color, Shape, Target
-
-
-def test_blob():
-    image = PIL.Image.new('1', (200, 300))
-
-    b = Blob(100, 200, 20, 30, image)
-
-    assert b.x == 100
-    assert b.y == 200
-    assert b.width == 20
-    assert b.height == 30
-    assert b.image == image
-    assert str(b) == "Blob(x=100, y=200, width=20, height=30, has_mask=False)"
-    assert repr(eval(repr(b))) == repr(b)
+from target_finder import Color, Shape, Target
 
 
 def test_basic_target():

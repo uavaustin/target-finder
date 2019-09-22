@@ -22,8 +22,8 @@ $ pip install https://github.com/uavaustin/target-finder/releases/download/v0.3.
 Python 3 is required. *If `python --version` shows Python 2, then use `python3`
 and `pip3` instead.*
 
-This will not install OpenCV, Tensorflow, and target-finder-model
-automatically, those must be installed separately. Other dependencies, however,
+This will not install OpenCV and target-finder-model automatically,
+those must be installed separately. Other dependencies, however,
 will be fetched automatically.
 
 ### OpenCV
@@ -31,14 +31,6 @@ will be fetched automatically.
 The easiest way to install OpenCV is with `pip install opencv-python`. However,
 this [might not work on all platforms](
     https://github.com/skvark/opencv-python/issues/13).
-
-### Tensorflow
-
-To get Tensorflow, you can either run `pip install tensorflow` or
-`pip install tensorflow-gpu`. The GPU version can only be used if the
-[Tensorflow GPU requirements](
-    https://www.tensorflow.org/install/install_linux#NVIDIARequirements) are
-met.
 
 ### target-finder-model
 
@@ -55,15 +47,13 @@ The library ships with `target-finder-cli` command, type `target-finder-cli -h`
 in the command-line after installing for help and usage.
 
 ```text
-usage: target-finder-cli [-h] [-v] {blobs,targets} ...
+usage: target-finder-cli [-h] [-v] targets ...
 
 optional arguments:
   -h, --help       show this help message and exit
   -v, --version    show the version and exit
 
 subcommands:
-  {blobs,targets}
-    blobs          finds the interesting blobs in images
     targets        finds the targets in images
 ```
 

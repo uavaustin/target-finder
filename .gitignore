@@ -112,6 +112,10 @@ ENV/
 
 # target-finder model files
 /target_finder/data/
+*.weights
 
 # Output from the prepare-release.sh script
 /release/
+
+weights/
+tmpimages/
