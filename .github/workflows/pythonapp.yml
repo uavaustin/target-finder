@@ -23,5 +23,3 @@ jobs:
 
     - name: Create release
       run: ./scripts/create-release.sh
-
-   
