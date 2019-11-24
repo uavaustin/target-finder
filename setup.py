@@ -48,9 +48,10 @@ setup(
         'webcolors>=1.7',
         'scikit-learn'
     ],
-    entry_points='''
-        [console_scripts]
-        target-finder-cli=target_finder.cli:run
-    ''',
+    entry_points={
+        'console_scripts': [
+        'target-finder-cli=target_finder.cli:run'
+        ]
+    },
     license='MIT'
 )

@@ -119,3 +119,7 @@ ENV/
 
 weights/
 tmpimages/
+
+#TEMP
+uav/
+test.py

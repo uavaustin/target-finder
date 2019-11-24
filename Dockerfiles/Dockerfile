@@ -1,4 +1,4 @@
-FROM uavaustin/target-finder-model-env:latest
+FROM uavaustin/target-finder-model-env:tf1
 
 WORKDIR /
 
