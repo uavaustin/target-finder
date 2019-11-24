@@ -27,9 +27,9 @@ overlap = tfm.CONFIG['inputs']['cropping']['overlap']
 pre_clf_size = (tfm.CONFIG['inputs']['preclf']['width'], tfm.CONFIG['inputs']['preclf']['height'])
 det_size = (tfm.CONFIG['inputs']['detector']['width'], tfm.CONFIG['inputs']['detector']['height'])
     
-def load_models(use_trt=False):
-    models['frcnn'].load(use_trt)
-    models['clf'].load(use_trt)
+def load_models():
+    models['frcnn'].load()
+    models['clf'].load()
 
 def find_targets(pil_image, **kwargs):
     """Wrapper for finding targets which accepts a PIL image"""
