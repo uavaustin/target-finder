@@ -11,6 +11,7 @@ import sklearn.cluster
 import scipy.misc
 import target_finder_model as tfm
 
+from datetime import datetime
 from target_finder.darknet import Yolo3Detector, PreClassifier
 from target_finder.preprocessing import extract_crops, resize_all, extract_contour
 from target_finder.types import Color, Shape, Target, BBox
@@ -293,24 +294,60 @@ def load_images(imgs_path):
         num += 1
     return images
 
+def get_iou(bb1, bb2):
+
+    assert bb1['x1'] < bb1['x2']
+    assert bb1['y1'] < bb1['y2']
+    assert bb2['x1'] < bb2['x2']
+    assert bb2['y1'] < bb2['y2']
+
+    # determine the coordinates of the intersection rectangle
+    x_left = max(bb1['x1'], bb2['x1'])
+    y_top = max(bb1['y1'], bb2['y1'])
+    x_right = min(bb1['x2'], bb2['x2'])
+    y_bottom = min(bb1['y2'], bb2['y2'])
+
+    if x_right < x_left or y_bottom < y_top:
+        return 0.0
+
+    # The intersection of two axis-aligned bounding boxes is always an
+    # axis-aligned bounding box
+    intersection_area = (x_right - x_left) * (y_bottom - y_top)
+
+    # compute the area of both AABBs
+    bb1_area = (bb1['x2'] - bb1['x1']) * (bb1['y2'] - bb1['y1'])
+    bb2_area = (bb2['x2'] - bb2['x1']) * (bb2['y2'] - bb2['y1'])
+
+    # compute the intersection over union by taking the intersection
+    # area and dividing it by the sum of prediction + ground-truth
+    # areas - the interesection area
+    iou = intersection_area / float(bb1_area + bb2_area - intersection_area)
+    assert iou >= 0.0
+    assert iou <= 1.0
+    return iou
+
 if __name__ == '__main__':
 
     imgs_path = sys.argv[1]
     output = open("diagnostics.txt","w")
     imgs = load_images(imgs_path)
     pred_full = []
+    times = []
+    iou_thresh = .7;
 
     for image in imgs:
+        start_time = datetime.now()
         pred_full.append(find_targets(image))
+        times.append(datetime.now()-start_time)
 
     for i, pred_img in enumerate(pred_full):
 
         truths = open(imgs_path+"/ex"+str(i)+".txt", "r").readlines()
 
-        pred_target_data = []
-        true_target_data = []
+        pred_target_data = set()
+        true_target_data = set()
         for line in truths:
-            true_target_data.append(line.replace("\n","").split(" "))
+            true_target_data.add(tuple(line.replace("\n","").split(" ")))
 
         for target in pred_img:
             shape = target.shape
@@ -319,12 +356,61 @@ if __name__ == '__main__':
             y = target.y
             w = target.width
             h = target.height
-            pred_target_data.append((shape, alphanumeric, x, y, w, h))
+            pred_target_data.add((shape, alphanumeric, x, y, w, h))
+
+        correct_preds = {}
+        correct_ious = {}
+
+        for truth in true_target_data:
+        	for pred in pred_target_data:
+        		true_x = float(truth[1])
+        		true_w = float(truth[3])
+        		true_y = float(truth[2])
+        		true_h = float(truth[4])
+        		true_alphanumeric = truth[0][-1]
+        		true_shape = truth[0][0:truth[0].index("_")]
+        		pred_x = pred[2]
+        		pred_y = pred[3]
+        		pred_w = pred[4]
+        		pred_h = pred[5]
+        		pred_alphanumeric = pred[1]
+        		pred_shape =str(pred[0])[str(pred[0]).index(".")+1:].lower()
+        		bb_true = {
+        			'x1':true_x,
+        			'x2':true_x+true_w,
+        			'y1':true_y,
+        			'y2':true_y+true_h
+        		}
+        		bb_pred = {
+        			'x1':pred_x,
+        			'x2':pred_x+pred_w,
+        			'y1':pred_y,
+        			'y2':pred_y+pred_h
+        		}
+        		iou = get_iou(bb_true, bb_pred)
+        		#print("TRUTH - "+str((true_x, true_y, true_alphanumeric, true_shape)))
+        		#print("PRED - "+str((pred_x, pred_y, pred_alphanumeric, pred_shape)))
+        		if(iou > iou_thresh and 
+        			pred_shape==true_shape and 
+        			pred_alphanumeric==true_alphanumeric):
+        			correct_preds[truth] = pred
+        			correct_ious[truth] = str(pred) + " WITH IOU " + str(iou)
+
+        false_negatives = true_target_data.difference(set(correct_preds.keys()))
+        false_positives = pred_target_data.difference(set(correct_preds.values()))
 
         output.write("---- IMAGE ex"+str(i)+" ----\n")
         output.write("ACTUAL:\n")
         output.write(str(true_target_data)+"\n")
         output.write("PREDICTED:\n")
-        output.write(str(pred_target_data)+'\n\n')
+        output.write(str(pred_target_data)+'\n')
+        output.write("TRUE POSITIVES:\n")
+        output.write(str(set(correct_ious.values()))+"\n")
+        output.write("FALSE NEGATIVES:\n")
+        output.write(str(false_negatives)+"\n")
+        output.write("FALSE POSITIVES:\n")
+        output.write(str(false_positives)+"\n")
+        output.write("TIME ELAPSED:\n")
+        output.write(str(times[i])+"\n\n")
 
     output.close()
