@@ -3,6 +3,7 @@ import numpy as np
 
 from .types import BBox
 
+
 def extract_crops(image, size, overlap):
 
     w, h = image.size
@@ -23,7 +24,7 @@ def extract_crops(image, size, overlap):
             x2 = x1 + size[1]
 
             box = BBox(x1, y1, x2, y2)
-            box.image = image
+            box.image = image.crop((x1, y1, x2, y2))
 
             crops.append(box)
 

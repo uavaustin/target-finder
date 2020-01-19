@@ -2,7 +2,7 @@
 
 > Python library for identifying AUVSI SUAS targets.
 
-[![Build Status](https://travis-ci.org/uavaustin/target-finder.svg?branch=master)](https://travis-ci.org/uavaustin/target-finder)
+[![Actions Status | Build](https://github.com/uavaustin/target-finder/workflows/build/badge.svg)](https://github.com/uavaustin/target-finder/actions)
 [![Test Coverage](https://coveralls.io/repos/github/uavaustin/target-finder/badge.svg?branch=master)](https://coveralls.io/github/uavaustin/target-finder?branch=master)
 
 ## Installation

@@ -1,6 +1,6 @@
 """Testing target finding."""
 
-from target_finder.classification import find_targets
+from target_finder.classification import find_targets, load_models
 from target_finder import Color, Shape, Target
 
 import PIL.Image
@@ -97,7 +97,7 @@ TESTS = [
 
 
 def test_targets():
-
+    load_models()
     for fn, expected_targets in TESTS:
         image = PIL.Image.open(os.path.join(IMAGE_DIR, fn))
         actual_targets = find_targets(image)

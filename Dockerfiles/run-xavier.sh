@@ -1,3 +1,5 @@
+xhost +"local:docker@"
+
 sudo docker run --runtime=nvidia -ti \
 -v $PWD/../:/host/mounted \
 --shm-size=1g \

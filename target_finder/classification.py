@@ -6,7 +6,8 @@ from pkg_resources import resource_filename
 import numpy as np
 import os
 import PIL.Image
-import sklearn.cluster
+from PIL import ImageFilter
+from sklearn.cluster import KMeans
 import scipy.misc
 import scipy.cluster
 import heapq
@@ -22,14 +23,22 @@ models = {
     'clf': tfm.inference.ClfModel()
 }
 
-crop_size = (tfm.CONFIG['inputs']['cropping']['width'],tfm.CONFIG['inputs']['cropping']['height'])
+crop_size = (tfm.CONFIG['inputs']['cropping']['width'],
+             tfm.CONFIG['inputs']['cropping']['height'])
+
 overlap = tfm.CONFIG['inputs']['cropping']['overlap']
-pre_clf_size = (tfm.CONFIG['inputs']['preclf']['width'], tfm.CONFIG['inputs']['preclf']['height'])
-det_size = (tfm.CONFIG['inputs']['detector']['width'], tfm.CONFIG['inputs']['detector']['height'])
-    
+
+pre_clf_size = (tfm.CONFIG['inputs']['preclf']['width'],
+                tfm.CONFIG['inputs']['preclf']['height'])
+
+det_size = (tfm.CONFIG['inputs']['detector']['width'],
+            tfm.CONFIG['inputs']['detector']['height'])
+
+
 def load_models():
     models['frcnn'].load()
     models['clf'].load()
+
 
 def find_targets(pil_image, **kwargs):
     """Wrapper for finding targets which accepts a PIL image"""
@@ -54,18 +63,22 @@ def _run_models(image):
     clf_model = models['clf']
 
     crops = extract_crops(image, crop_size, overlap)
-
     clf_crops = resize_all(crops, pre_clf_size)
 
     regions = clf_model.predict([box.image for box in clf_crops])
-    
+
     filtered_crops = [crops[i] for i, region in enumerate(regions)
-                      if region.class_idx == 0]
-    
+                      if region.class_idx == 1]
+
+    # TODO Determine if this Sharpening is useful
+    for idx, crop in enumerate(filtered_crops):
+        crop.image = crop.image.filter(ImageFilter.SHARPEN)
+
     detector_crops = resize_all(filtered_crops, det_size)
 
     if len(detector_crops) != 0:
-        offset_dets = detector_model.predict([box.image for box in detector_crops])
+        offset_dets = detector_model.predict(
+            [box.image for box in detector_crops])
     else:
         offset_dets = []
 
@@ -77,7 +90,7 @@ def _run_models(image):
         for det in offset_dets:
 
             bw = det.width / ratio
-            bh = det.height  / ratio
+            bh = det.height / ratio
             bx = (det.x / ratio) + crop.x1
             by = (det.y / ratio) + crop.y1
             box = BBox(bx, by, bx + bw, by + bh)
@@ -121,7 +134,7 @@ def _get_shape_and_alpha(box):
     if best_shape == 'unk':
         shape = Shape.NAS
     else:
-        shape = Shape[best_shape.split('-')[0].upper()]
+        shape = Shape[best_shape.upper().replace('-', '_')]
 
     return shape, best_alpha, ((conf_shape + conf_alpha) / 2)
 
@@ -174,7 +187,7 @@ def _identify_properties(targets, full_image, padding=15):
             target_color, alpha_color = _get_colors(blob_image)
             target.background_color = target_color
             target.alphanumeric_color = alpha_color
-        except:
+        except Exception as e:
             target.background_color = Color.NONE
             target.alphanumeric_color = Color.NONE
 
@@ -198,26 +211,33 @@ def _get_colors(image):
 
 def _find_main_colors(image):
     """Find the two main colors of the blob"""
+    
     ar = np.asarray(image)
     shape = ar.shape
     ar = ar.reshape(scipy.product(shape[:2]), shape[2]).astype(float)
 
     codes, dist = scipy.cluster.vq.kmeans(ar, 3)
 
-    vecs, dist = scipy.cluster.vq.vq(ar, codes)         # assign codes
-    counts, bins = scipy.histogram(vecs, len(codes))    # count occurrences
-    top2 = heapq.nlargest(2, counts) # find most frequent
+    vecs, dist = scipy.cluster.vq.vq(ar, codes)  # assign codes
+    counts, bins = scipy.histogram(vecs, len(codes))  # count occurrences
+    top2 = heapq.nlargest(3, counts)  # find most frequent
 
-    color_a = codes[np.where(counts==top2[0])][0]
+    color_a = codes[np.where(counts == top2[0])][0]
     color_a = (color_a[0], color_a[1], color_a[2])
     count_a = top2[0]
 
-    color_b = codes[np.where(counts==top2[1])][0]
+    color_b = codes[np.where(counts == top2[1])][0]
     color_b = (color_b[0], color_b[1], color_b[2])
     count_b = top2[1]
 
-    return (color_a, count_a), (color_b, count_b)
+    color_c = codes[np.where(counts == top2[2])][0]
+    color_c = (color_c[0], color_c[1], color_c[2])
+    count_c = top2[2]
+    kmeans = KMeans(n_clusters=4)
+    kmeans.fit(ar)
+    colors = kmeans.cluster_centers_
 
+    return (color_b, count_b), (color_c, count_c)
 
 def _get_color_name(requested_color):
 

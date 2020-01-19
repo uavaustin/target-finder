@@ -1,0 +1,9 @@
+FROM python:3.6-alpine
+
+WORKDIR /test
+
+RUN pip3 install tox
+
+COPY . .
+
+RUN tox
