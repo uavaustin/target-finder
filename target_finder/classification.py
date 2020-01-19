@@ -211,7 +211,7 @@ def _get_colors(image):
 
 def _find_main_colors(image):
     """Find the two main colors of the blob"""
-    
+
     ar = np.asarray(image)
     shape = ar.shape
     ar = ar.reshape(scipy.product(shape[:2]), shape[2]).astype(float)
@@ -238,6 +238,7 @@ def _find_main_colors(image):
     colors = kmeans.cluster_centers_
 
     return (color_b, count_b), (color_c, count_c)
+
 
 def _get_color_name(requested_color):
 

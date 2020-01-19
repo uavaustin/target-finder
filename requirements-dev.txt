@@ -1,0 +1,15 @@
+contextlib2
+numpy
+Pillow
+progress
+requests
+tqdm
+tensorflow-gpu>=2.0.0
+pyyaml
+https://github.com/uavaustin/target-finder-model/releases/download/v1.0.0/target-finder-model-v1.0.0.tar.gz
+pytest
+pytest-cov
+pycodestyle
+coverage
+pyyaml
+dataclasses
