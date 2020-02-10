@@ -19,25 +19,31 @@ from .color_cube import ColorCube
 
 # Default Models w/default weights
 models = {
-    'frcnn': tfm.inference.DetectionModel(),
-    'clf': tfm.inference.ClfModel()
+    "frcnn": tfm.inference.DetectionModel(),
+    "clf": tfm.inference.ClfModel(),
 }
 
-crop_size = (tfm.CONFIG['inputs']['cropping']['width'],
-             tfm.CONFIG['inputs']['cropping']['height'])
+crop_size = (
+    tfm.CONFIG["inputs"]["cropping"]["width"],
+    tfm.CONFIG["inputs"]["cropping"]["height"],
+)
 
-overlap = tfm.CONFIG['inputs']['cropping']['overlap']
+overlap = tfm.CONFIG["inputs"]["cropping"]["overlap"]
 
-pre_clf_size = (tfm.CONFIG['inputs']['preclf']['width'],
-                tfm.CONFIG['inputs']['preclf']['height'])
+pre_clf_size = (
+    tfm.CONFIG["inputs"]["preclf"]["width"],
+    tfm.CONFIG["inputs"]["preclf"]["height"],
+)
 
-det_size = (tfm.CONFIG['inputs']['detector']['width'],
-            tfm.CONFIG['inputs']['detector']['height'])
+det_size = (
+    tfm.CONFIG["inputs"]["detector"]["width"],
+    tfm.CONFIG["inputs"]["detector"]["height"],
+)
 
 
 def load_models():
-    models['frcnn'].load()
-    models['clf'].load()
+    models["frcnn"].load()
+    models["clf"].load()
 
 
 def find_targets(pil_image, **kwargs):
@@ -59,16 +65,18 @@ def find_targets_from_array(image_ary, limit=20):
 
 def _run_models(image):
 
-    detector_model = models['frcnn']
-    clf_model = models['clf']
+    detector_model = models["frcnn"]
+    clf_model = models["clf"]
 
     crops = extract_crops(image, crop_size, overlap)
     clf_crops = resize_all(crops, pre_clf_size)
 
     regions = clf_model.predict([box.image for box in clf_crops])
 
-    filtered_crops = [crops[i] for i, region in enumerate(regions)
-                      if region.class_idx == 1]
+    filtered_crops = []
+    for i, region in enumerate(regions):
+        if region.class_idx == 1:
+            filtered_crops.append(crops[i])
 
     # TODO Determine if this Sharpening is useful
     for idx, crop in enumerate(filtered_crops):
@@ -78,7 +86,8 @@ def _run_models(image):
 
     if len(detector_crops) != 0:
         offset_dets = detector_model.predict(
-            [box.image for box in detector_crops])
+            [box.image for box in detector_crops]
+        )
     else:
         offset_dets = []
 
@@ -109,18 +118,25 @@ def _bboxes_to_targets(bboxes):
 
     for box in merged_bboxes:
         shape, alpha, conf = _get_shape_and_alpha(box)
-        targets.append(Target(box.x1, box.y1, box.w, box.h,
-                              shape=shape,
-                              alphanumeric=alpha,
-                              confidence=conf))
+        targets.append(
+            Target(
+                box.x1,
+                box.y1,
+                box.w,
+                box.h,
+                shape=shape,
+                alphanumeric=alpha,
+                confidence=conf,
+            )
+        )
 
     return targets
 
 
 def _get_shape_and_alpha(box):
 
-    best_shape, conf_shape = 'unk', 0
-    best_alpha, conf_alpha = 'unk', 0
+    best_shape, conf_shape = "unk", 0
+    best_alpha, conf_alpha = "unk", 0
 
     for class_name, conf in box.meta.items():
         if len(class_name) == 1 and conf > conf_alpha:
@@ -131,10 +147,10 @@ def _get_shape_and_alpha(box):
             conf_shape = conf
 
     # convert name to object
-    if best_shape == 'unk':
+    if best_shape == "unk":
         shape = Shape.NAS
     else:
-        shape = Shape[best_shape.upper().replace('-', '_')]
+        shape = Shape[best_shape.upper().replace("-", "_")]
 
     return shape, best_alpha, ((conf_shape + conf_alpha) / 2)
 
@@ -154,11 +170,11 @@ def _merge_boxes(boxes):
 
 def _intersect(box1, box2):
     # no intersection along x-axis
-    if (box1.x1 > box2.x2 or box2.x1 > box1.x2):
+    if box1.x1 > box2.x2 or box2.x1 > box1.x2:
         return False
 
     # no intersection along y-axis
-    if (box1.y1 > box2.y2 or box2.y1 > box1.y2):
+    if box1.y1 > box2.y2 or box2.y1 > box1.y2:
         return False
 
     return True
@@ -211,7 +227,7 @@ def _get_colors(image):
 
 def _find_main_colors(image):
     """Find the two main colors of the blob"""
-
+    # TODO see: https://github.com/uavaustin/target-finder/issues/16
     ar = np.asarray(image)
     shape = ar.shape
     ar = ar.reshape(scipy.product(shape[:2]), shape[2]).astype(float)
@@ -230,14 +246,7 @@ def _find_main_colors(image):
     color_b = (color_b[0], color_b[1], color_b[2])
     count_b = top2[1]
 
-    color_c = codes[np.where(counts == top2[2])][0]
-    color_c = (color_c[0], color_c[1], color_c[2])
-    count_c = top2[2]
-    kmeans = KMeans(n_clusters=4)
-    kmeans.fit(ar)
-    colors = kmeans.cluster_centers_
-
-    return (color_b, count_b), (color_c, count_c)
+    return (color_a, count_a), (color_b, count_b)
 
 
 def _get_color_name(requested_color):
@@ -253,7 +262,7 @@ def _get_color_name(requested_color):
         "yellow": ColorCube((60, 50, 55), (75, 100, 100)),
         "purple": ColorCube((230, 40, 55), (280, 100, 100)),
         "brown": ColorCube((300, 38, 20), (359, 100, 40)),
-        "orange": ColorCube((15, 70, 75), (45, 100, 100))
+        "orange": ColorCube((15, 70, 75), (45, 100, 100)),
     }
 
     r = requested_color[0] / 255
@@ -285,10 +294,14 @@ def _get_color_name(requested_color):
 
     contains = [color_cubes[key].contains((h, s, v)) for key in color_cubes]
     if not any(contains):
-        cl_dists = [color_cubes[key].get_closest_distance((h, s, v))
-                    for key in color_cubes]
-        dist = [np.sqrt((p[0] * p[0]) + (p[1] * p[1]) + (p[2] * p[2]))
-                for p in cl_dists]
+        cl_dists = [
+            color_cubes[key].get_closest_distance((h, s, v))
+            for key in color_cubes
+        ]
+        dist = [
+            np.sqrt((p[0] * p[0]) + (p[1] * p[1]) + (p[2] * p[2]))
+            for p in cl_dists
+        ]
         index = dist.index(min(dist)) + 1
         return Color(index)
     else:

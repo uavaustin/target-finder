@@ -1,6 +1,6 @@
 sudo docker run --runtime=nvidia -ti \
--v $PWD/../:/host/mounted \
+-v $PWD:/host \
 --shm-size=1g \
 --ulimit memlock=-1 \
 --ulimit stack=67108864 \
-uavaustin/target-finder-model-env:tf1 /bin/bash
+uavaustin/target-finder-env:latest /bin/bash

@@ -1,4 +1,4 @@
-FROM uavaustin/target-finder-model-env:tf1
+FROM nvcr.io/nvidia/tensorflow:19.10-py3
 
 WORKDIR /
 
@@ -6,6 +6,8 @@ RUN apt-get update \
     && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . target-finder
+COPY requirements-gpu.txt .
+RUN pip3 install -r requirements-gpu.txt \
+https://github.com/uavaustin/target-finder-model/releases/download/v1.0.0/target-finder-model-1.0.0.tar.gz
 
-RUN pip3 install https://github.com/uavaustin/target-finder-model/releases/download/v1.0.0/target-finder-model-v1.0.0.tar.gz
+WORKDIR /host
