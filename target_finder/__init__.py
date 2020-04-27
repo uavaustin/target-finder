@@ -1,5 +1,5 @@
 """Entrypoint for the target_finder library."""
 
-from .classification import find_targets, load_models
-from .types import Color, Shape, Target
-from .version import __version__
+from target_finder.classification import find_targets, load_models
+from target_finder.types import Color, Shape, Target
+from target_finder.version import __version__

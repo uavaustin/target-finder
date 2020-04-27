@@ -1,10 +1,19 @@
 #!/bin/bash -e
 
+# Some helper scripts to quite the pushd and popd
+pushd () {
+    command pushd "$@" > /dev/null
+}
+
+popd () {
+    command popd "$@" > /dev/null
+}
+
 cd $(dirname "$0")
 
 pushd ..
 # Find the version number to release.
-version=$(grep -o -e "'.*'" "target_finder/version.py" | tr -d "'")
+version=$(grep -o -e '".*"' "target_finder/version.py" | sed 's/"//g')
 
 echo "Detected version ""$version"
 
@@ -21,7 +30,7 @@ find "target_finder/" -name "*.py" -exec cp '{}' \
   "$tf_stage_dir/target_finder/" \;
 
 # Copy over configuration and informational files.
-cp README.md LICENSE CHANGELOG.md setup.py "$tf_stage_dir"
+cp README.md LICENSE setup.py "$tf_stage_dir"
 
 # Compress the directory.
 echo "Creating archive"

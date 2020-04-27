@@ -38,9 +38,7 @@ class ColorCube:
 
     def displayDeltas(self):
         print(
-            self.hEnd - self.hStart,
-            self.sEnd - self.sStart,
-            self.vEnd - self.vStart,
+            self.hEnd - self.hStart, self.sEnd - self.sStart, self.vEnd - self.vStart,
         )
 
     def contains(self, color):

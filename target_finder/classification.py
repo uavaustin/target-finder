@@ -1,10 +1,7 @@
 """Contains logic for finding targets in blobs."""
-
-import os
 from pkg_resources import resource_filename
 
 import numpy as np
-import os
 import PIL.Image
 from PIL import ImageFilter
 from sklearn.cluster import KMeans
@@ -13,9 +10,9 @@ import scipy.cluster
 import heapq
 import target_finder_model as tfm
 
-from .preprocessing import extract_crops, resize_all
-from .types import Color, Shape, Target, BBox
-from .color_cube import ColorCube
+from target_finder import preprocessing
+from target_finder import types
+from target_finder import color_cube
 
 # Default Models w/default weights
 models = {
@@ -68,26 +65,24 @@ def _run_models(image):
     detector_model = models["frcnn"]
     clf_model = models["clf"]
 
-    crops = extract_crops(image, crop_size, overlap)
-    clf_crops = resize_all(crops, pre_clf_size)
+    crops = preprocessing.extract_crops(image, crop_size, overlap)
+    clf_crops = preprocessing.resize_all(crops, pre_clf_size)
 
     regions = clf_model.predict([box.image for box in clf_crops])
 
-    filtered_crops = []
-    for i, region in enumerate(regions):
-        if region.class_idx == 1:
-            filtered_crops.append(crops[i])
+    filtered_crops = [
+        crops[i] for i, region in enumerate(regions) if region.class_idx == 1
+    ]
 
-    # TODO Determine if this Sharpening is useful
+    # TODO(alex) Determine if this Sharpening is useful
+    """
     for idx, crop in enumerate(filtered_crops):
         crop.image = crop.image.filter(ImageFilter.SHARPEN)
-
-    detector_crops = resize_all(filtered_crops, det_size)
+    """
+    detector_crops = preprocessing.resize_all(filtered_crops, det_size)
 
     if len(detector_crops) != 0:
-        offset_dets = detector_model.predict(
-            [box.image for box in detector_crops]
-        )
+        offset_dets = detector_model.predict([box.image for box in detector_crops])
     else:
         offset_dets = []
 
@@ -102,7 +97,7 @@ def _run_models(image):
             bh = det.height / ratio
             bx = (det.x / ratio) + crop.x1
             by = (det.y / ratio) + crop.y1
-            box = BBox(bx, by, bx + bw, by + bh)
+            box = types.BBox(bx, by, bx + bw, by + bh)
             box.meta = {det.class_name: det.confidence}
             box.confidence = det.confidence
             normalized_bboxes.append(box)
@@ -119,7 +114,7 @@ def _bboxes_to_targets(bboxes):
     for box in merged_bboxes:
         shape, alpha, conf = _get_shape_and_alpha(box)
         targets.append(
-            Target(
+            types.Target(
                 box.x1,
                 box.y1,
                 box.w,
@@ -148,9 +143,9 @@ def _get_shape_and_alpha(box):
 
     # convert name to object
     if best_shape == "unk":
-        shape = Shape.NAS
+        shape = types.Shape.NAS
     else:
-        shape = Shape[best_shape.upper().replace("-", "_")]
+        shape = types.Shape[best_shape.upper().replace("-", "_")]
 
     return shape, best_alpha, ((conf_shape + conf_alpha) / 2)
 
@@ -204,8 +199,8 @@ def _identify_properties(targets, full_image, padding=15):
             target.background_color = target_color
             target.alphanumeric_color = alpha_color
         except Exception as e:
-            target.background_color = Color.NONE
-            target.alphanumeric_color = Color.NONE
+            target.background_color = types.Color.NONE
+            target.alphanumeric_color = types.Color.NONE
 
 
 def _get_colors(image):
@@ -253,16 +248,16 @@ def _get_color_name(requested_color):
 
     # ColorCube((Hl, sl, vl), (Hu, Su, Vu))
     color_cubes = {
-        "white": ColorCube((0, 0, 85), (359, 20, 100)),
-        "black": ColorCube((0, 0, 0), (359, 100, 25)),
-        "gray": ColorCube((0, 0, 25), (359, 5, 75)),
-        "blue": ColorCube((180, 70, 70), (345, 100, 100)),
-        "red": ColorCube((350, 70, 70), (359, 100, 65)),
-        "green": ColorCube((100, 60, 30), (160, 100, 100)),
-        "yellow": ColorCube((60, 50, 55), (75, 100, 100)),
-        "purple": ColorCube((230, 40, 55), (280, 100, 100)),
-        "brown": ColorCube((300, 38, 20), (359, 100, 40)),
-        "orange": ColorCube((15, 70, 75), (45, 100, 100)),
+        "white": color_cube.ColorCube((0, 0, 85), (359, 20, 100)),
+        "black": color_cube.ColorCube((0, 0, 0), (359, 100, 25)),
+        "gray": color_cube.ColorCube((0, 0, 25), (359, 5, 75)),
+        "blue": color_cube.ColorCube((180, 70, 70), (345, 100, 100)),
+        "red": color_cube.ColorCube((350, 70, 70), (359, 100, 65)),
+        "green": color_cube.ColorCube((100, 60, 30), (160, 100, 100)),
+        "yellow": color_cube.ColorCube((60, 50, 55), (75, 100, 100)),
+        "purple": color_cube.ColorCube((230, 40, 55), (280, 100, 100)),
+        "brown": color_cube.ColorCube((300, 38, 20), (359, 100, 40)),
+        "orange": color_cube.ColorCube((15, 70, 75), (45, 100, 100)),
     }
 
     r = requested_color[0] / 255
@@ -295,17 +290,15 @@ def _get_color_name(requested_color):
     contains = [color_cubes[key].contains((h, s, v)) for key in color_cubes]
     if not any(contains):
         cl_dists = [
-            color_cubes[key].get_closest_distance((h, s, v))
-            for key in color_cubes
+            color_cubes[key].get_closest_distance((h, s, v)) for key in color_cubes
         ]
         dist = [
-            np.sqrt((p[0] * p[0]) + (p[1] * p[1]) + (p[2] * p[2]))
-            for p in cl_dists
+            np.sqrt((p[0] * p[0]) + (p[1] * p[1]) + (p[2] * p[2])) for p in cl_dists
         ]
         index = dist.index(min(dist)) + 1
-        return Color(index)
+        return types.Color(index)
     else:
         index = contains.index(True) + 1
-        return Color(index)
+        return types.Color(index)
 
-    return Color.NONE
+    return types.Color.NONE

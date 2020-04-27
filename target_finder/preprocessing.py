@@ -1,7 +1,7 @@
 """Contains logic for finding and filtering blobs."""
 import numpy as np
 
-from .types import BBox
+from target_finder.types import BBox
 
 
 def extract_crops(image, size, overlap):
@@ -23,7 +23,7 @@ def extract_crops(image, size, overlap):
             y2 = y1 + size[0]
             x2 = x1 + size[1]
 
-            box = BBox(x1, y1, x2, y2)
+            box = types.BBox(x1, y1, x2, y2)
             box.image = image.crop((x1, y1, x2, y2))
 
             crops.append(box)

@@ -9,26 +9,26 @@ from PIL import Image
 
 import target_finder_model as tfm
 
-from .classification import find_targets
-from .version import __version__
+from target_finder.classification import find_targets
+from target_finder import version
 
 
 # Create the top level parser.
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-v", "--version", action="store_true", help="show the version and exit"
+    "--version",
+    action="version",
+    version=version.__version__,
+    help="Show the version and exit.",
 )
 subparsers = parser.add_subparsers(dest="subcommand", title="subcommands")
 
 # Parser for the targets subcommand.
-target_parser = subparsers.add_parser(
-    "targets", help="finds the targets in " "images"
-)
+target_parser = subparsers.add_parser("targets", help="finds the targets in " "images")
 target_parser.add_argument(
     "filename", type=str, nargs="+", help="the images or image directories"
 )
 target_parser.add_argument(
-    "-o",
     "--output",
     type=str,
     action="store",
@@ -63,7 +63,7 @@ def run(args=None):
 
     args.func(args)
 
-
+"""
 def print_version():
     if hasattr(tfm, "__version__"):
         model_version = tfm.__version__
@@ -74,7 +74,7 @@ def print_version():
         f"target-finder v{__version__} with target-finder-model "
         f"v{model_version} (tensorflow v{tf.__version__})"
     )
-
+"""
 
 def run_targets(args):
     """Run the targets subcommand."""
@@ -91,9 +91,7 @@ def run_targets(args):
 
         # Save each target found with an incrementing number.
         for target in targets:
-            print(
-                "Saving target #{:06d} from {:s}".format(target_num, filename)
-            )
+            print("Saving target #{:06d} from {:s}".format(target_num, filename))
 
             basename_image = "target-{:06d}.jpg".format(target_num)
             basename_meta = "target-{:06d}.json".format(target_num)
