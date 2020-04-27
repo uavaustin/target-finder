@@ -1,0 +1,71 @@
+FROM nvcr.io/nvidia/l4t-base:r32.2.1
+
+WORKDIR /
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    pkg-config \
+    libhdf5-dev \
+    libhdf5-serial-dev \
+    python3-dev \
+    python3-h5py \
+    python3-pip \
+    python3-setuptools \
+    && \
+    python3 -m pip install --no-cache-dir --upgrade pip && \
+    python3 -m pip install --no-cache-dir --upgrade setuptools && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --no-cache-dir -U numpy grpcio absl-py py-cpuinfo psutil portpicker grpcio six mock requests gast astor termcolor
+
+# Install TensorFlow
+RUN python3 -m pip install --no-cache-dir --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        protobuf-compiler \
+        libfreetype6-dev \
+    && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone the TensorFlow Models Repository
+# the release branches usually don't contain the research folder, so we have to use master.
+ARG TF_MODELS_VERSION=master
+RUN git clone --depth 1 https://github.com/tensorflow/models.git -b ${TF_MODELS_VERSION}
+
+WORKDIR /models/research
+
+# Compile the Protos
+
+RUN protoc object_detection/protos/*.proto --python_out=.
+
+ENV PYTHONPATH=$PYTHONPATH:/models/research:/models/research/slim
+
+# Build the Wheels
+
+RUN python3 setup.py build && \
+    python3 setup.py bdist_wheel && \
+    (cd slim && python3 setup.py bdist_wheel)
+
+# Install TF-TRT
+
+WORKDIR /
+
+RUN git clone https://github.com/cocodataset/cocoapi.git
+RUN pip3 install Cython 
+RUN pip3 install pycocotools
+RUN pip3 install pyyaml
+RUN pip3 install dataclasses
+RUN cd cocoapi/PythonAPI \
+  && python3 setup.py build_ext --inplace \
+  && rm -rf build \
+  && cp -r pycocotools /models/research/
+
+RUN pip3 install matplotlib
+RUN git clone https://github.com/tensorflow/tensorrt.git \
+  && cd tensorrt/tftrt/examples/object_detection \
+  && git submodule update --init \
+  && ./install_dependencies.sh \
+  && cd /tensorrt \
+  && python3 setup.py install --user

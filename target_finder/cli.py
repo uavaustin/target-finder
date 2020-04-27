@@ -1,37 +1,55 @@
 """Contains functions for cli subcommands."""
 
 import argparse
-import json
 import os
 import sys
-import cv2
+import json
+
+from PIL import Image
 
 import target_finder_model as tfm
 
-from .classification import find_targets
-from .version import __version__
+from target_finder.classification import find_targets
+from target_finder import version
 
 
 # Create the top level parser.
 parser = argparse.ArgumentParser()
-parser.add_argument('-v', '--version', action='store_true',
-                    help='show the version and exit')
-subparsers = parser.add_subparsers(dest='subcommand', title='subcommands')
+parser.add_argument(
+    "--version",
+    action="version",
+    version=version.__version__,
+    help="Show the version and exit.",
+)
+subparsers = parser.add_subparsers(dest="subcommand", title="subcommands")
 
 # Parser for the targets subcommand.
-target_parser = subparsers.add_parser('targets', help='finds the targets in '
-                                                      'images')
-target_parser.add_argument('filename', type=str, nargs='+',
-                           help='the images or image directories')
-target_parser.add_argument('-o', '--output', type=str, action='store',
-                           default='.', help='output directory (defaults to '
-                                             'current dir)')
-target_parser.add_argument('--min-confidence', type=float, action='store',
-                           default=0.85, help='confidence level for '
-                                              'classification (default: 0.85)')
-target_parser.add_argument('--limit', type=int, dest='limit', action='store',
-                           default=10, help='max number of targets to find '
-                                            'per image (default: 10)')
+target_parser = subparsers.add_parser("targets", help="finds the targets in " "images")
+target_parser.add_argument(
+    "filename", type=str, nargs="+", help="the images or image directories"
+)
+target_parser.add_argument(
+    "--output",
+    type=str,
+    action="store",
+    default=".",
+    help="output directory (defaults to " "current dir)",
+)
+target_parser.add_argument(
+    "--min-confidence",
+    type=float,
+    action="store",
+    default=0.85,
+    help="confidence level for " "classification (default: 0.85)",
+)
+target_parser.add_argument(
+    "--limit",
+    type=int,
+    dest="limit",
+    action="store",
+    default=10,
+    help="max number of targets to find " "per image (default: 10)",
+)
 
 
 def run(args=None):
@@ -45,16 +63,18 @@ def run(args=None):
 
     args.func(args)
 
-
+"""
 def print_version():
-    if hasattr(tfm, '__version__'):
+    if hasattr(tfm, "__version__"):
         model_version = tfm.__version__
     else:
-        model_version = '0.1.0'
+        model_version = "0.1.0"
 
-    print(f'target-finder v{__version__} with target-finder-model '
-          f'v{model_version} (tensorflow v{tf.__version__})')
-
+    print(
+        f"target-finder v{__version__} with target-finder-model "
+        f"v{model_version} (tensorflow v{tf.__version__})"
+    )
+"""
 
 def run_targets(args):
     """Run the targets subcommand."""
@@ -65,17 +85,16 @@ def run_targets(args):
 
     for filename in _list_images(args.filename):
 
-        image = cv2.imread(filename)
+        image = Image.open(filename)
 
-        targets = find_targets_from_array(image, limit=args.limit)
+        targets = find_targets(image, limit=args.limit)
 
         # Save each target found with an incrementing number.
         for target in targets:
-            print('Saving target #{:06d} from {:s}'.format(target_num,
-                                                           filename))
+            print("Saving target #{:06d} from {:s}".format(target_num, filename))
 
-            basename_image = 'target-{:06d}.jpg'.format(target_num)
-            basename_meta = 'target-{:06d}.json'.format(target_num)
+            basename_image = "target-{:06d}.jpg".format(target_num)
+            basename_meta = "target-{:06d}.json".format(target_num)
 
             filename_image = os.path.join(args.output, basename_image)
             filename_meta = os.path.join(args.output, basename_meta)
@@ -99,8 +118,9 @@ def _list_images(filenames):
         # .jpeg (case-insensitive) to the list.
         elif os.path.isdir(filename):
             for inner_filename in os.listdir(filename):
-                if inner_filename.lower().endswith('.jpg') or \
-                        inner_filename.lower().endswith('.jpeg'):
+                if inner_filename.lower().endswith(
+                    ".jpg"
+                ) or inner_filename.lower().endswith(".jpeg"):
                     images.append(os.path.join(filename, inner_filename))
 
         # If it's not either above, exit.
@@ -110,7 +130,7 @@ def _list_images(filenames):
 
     # There's a problem if we can't find any images.
     if images == []:
-        print('No images found.')
+        print("No images found.")
         sys.exit(1)
 
     return images
@@ -118,19 +138,19 @@ def _list_images(filenames):
 
 def _save_target_meta(filename_meta, filename_image, target):
     """Save target metadata to a file."""
-    with open(filename_meta, 'w') as f:
+    with open(filename_meta, "w") as f:
         meta = {
-            'x': target.x,
-            'y': target.y,
-            'width': target.width,
-            'height': target.height,
-            'orientation': target.orientation,
-            'shape': target.shape.name.lower(),
-            'background_color': target.background_color.name.lower(),
-            'alphanumeric': target.alphanumeric,
-            'alphanumeric_color': target.alphanumeric_color.name.lower(),
-            'image': filename_image,
-            'confidence': target.confidence
+            "x": target.x,
+            "y": target.y,
+            "width": target.width,
+            "height": target.height,
+            "orientation": target.orientation,
+            "shape": target.shape.name.lower(),
+            "background_color": target.background_color.name.lower(),
+            "alphanumeric": target.alphanumeric,
+            "alphanumeric_color": target.alphanumeric_color.name.lower(),
+            "image": filename_image,
+            "confidence": target.confidence,
         }
 
         json.dump(meta, f, indent=2)

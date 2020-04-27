@@ -2,7 +2,7 @@
 
 > Python library for identifying AUVSI SUAS targets.
 
-[![Build Status](https://travis-ci.org/uavaustin/target-finder.svg?branch=master)](https://travis-ci.org/uavaustin/target-finder)
+[![Actions Status | Build](https://github.com/uavaustin/target-finder/workflows/nuild/badge.svg)](https://github.com/uavaustin/target-finder/actions)
 [![Test Coverage](https://coveralls.io/repos/github/uavaustin/target-finder/badge.svg?branch=master)](https://coveralls.io/github/uavaustin/target-finder?branch=master)
 
 ## Installation
@@ -22,15 +22,9 @@ $ pip install https://github.com/uavaustin/target-finder/releases/download/v0.3.
 Python 3 is required. *If `python --version` shows Python 2, then use `python3`
 and `pip3` instead.*
 
-This will not install OpenCV and target-finder-model automatically,
-those must be installed separately. Other dependencies, however,
+This will not install target-finder-model automatically,
+which must be installed separately. Other dependencies, however,
 will be fetched automatically.
-
-### OpenCV
-
-The easiest way to install OpenCV is with `pip install opencv-python`. However,
-this [might not work on all platforms](
-    https://github.com/skvark/opencv-python/issues/13).
 
 ### target-finder-model
 
@@ -38,7 +32,7 @@ The model used for target-finder is packaged in target-finder-model. It can be
 installed from GitHub Releases:
 
 ```sh
-$ pip install https://github.com/uavaustin/target-finder-model/releases/download/v0.2.0/target-finder-model-0.2.0.tar.gz
+$ pip install https://github.com/uavaustin/target-finder-model/releases/download/v1.0.0/target-finder-model-v1.0.0.tar.gz
 ```
 
 ## Command-line Interface

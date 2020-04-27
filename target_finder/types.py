@@ -13,16 +13,16 @@ class Color(Enum):
     Note that Color.NONE can be used if a color cannot be identified.
     """
 
-    NONE   = 0
-    WHITE  = 1
-    BLACK  = 2
-    GRAY   = 3
-    RED    = 4
-    BLUE   = 5
-    GREEN  = 6
+    NONE = 0
+    WHITE = 1
+    BLACK = 2
+    GRAY = 3
+    RED = 4
+    BLUE = 5
+    GREEN = 6
     YELLOW = 7
     PURPLE = 8
-    BROWN  = 9
+    BROWN = 9
     ORANGE = 10
 
 
@@ -34,31 +34,30 @@ class Shape(Enum):
     be identified.
     """
 
-    NAS            = 0
-    CIRCLE         = 1
-    SEMICIRCLE     = 2
+    NAS = 0
+    CIRCLE = 1
+    SEMICIRCLE = 2
     QUARTER_CIRCLE = 3
-    TRIANGLE       = 4
-    SQUARE         = 5
-    RECTANGLE      = 6
-    TRAPEZOID      = 7
-    PENTAGON       = 8
-    HEXAGON        = 9
-    HEPTAGON       = 10
-    OCTAGON        = 11
-    STAR           = 12
-    CROSS          = 13
+    TRIANGLE = 4
+    SQUARE = 5
+    RECTANGLE = 6
+    TRAPEZOID = 7
+    PENTAGON = 8
+    HEXAGON = 9
+    HEPTAGON = 10
+    OCTAGON = 11
+    STAR = 12
+    CROSS = 13
 
 
 class BBox(object):
-
     def __init__(self, x1, y1, x2, y2):
         self.x1 = x1
         self.y1 = y1
         self.x2 = x2
         self.y2 = y2
         self.image = None
-        self.meta = ''
+        self.meta = ""
         self.confidence = -1
 
     @property
@@ -103,9 +102,20 @@ class Target(object):
             (0 <= confidence <= 1).
     """
 
-    def __init__(self, x, y, width, height, shape=Shape.NAS, orientation=0.0,
-                 background_color=Color.NONE, alphanumeric='',
-                 alphanumeric_color=Color.NONE, image=None, confidence=0.0):
+    def __init__(
+        self,
+        x,
+        y,
+        width,
+        height,
+        shape=Shape.NAS,
+        orientation=0.0,
+        background_color=Color.NONE,
+        alphanumeric="",
+        alphanumeric_color=Color.NONE,
+        image=None,
+        confidence=0.0,
+    ):
         """Create a new Target object."""
         self.x = x
         self.y = y
@@ -121,12 +131,16 @@ class Target(object):
 
     def overlaps(self, other_target):
 
-        if (self.x > other_target.x + other_target.width or
-           other_target.x > self.x + self.width):
+        if (
+            self.x > other_target.x + other_target.width
+            or other_target.x > self.x + self.width
+        ):
             return False
 
-        if (self.y > other_target.y + other_target.height or
-           other_target.y > self.y + self.height):
+        if (
+            self.y > other_target.y + other_target.height
+            or other_target.y > self.y + self.height
+        ):
             return False
 
         return True
@@ -136,10 +150,10 @@ class Target(object):
 
     def __str__(self):
         return (
-            f'Target(x={self.x}, y={self.y}, width={self.width}, '
-            f'height={self.height}, orientation={self.orientation}, '
-            f'confidence={round(self.confidence, 2)}, shape={self.shape}, '
-            f'background_color={self.background_color}, '
-            f'alphanumeric={repr(self.alphanumeric)}, '
-            f'alphanumeric_color={self.alphanumeric_color})'
+            f"Target(x={self.x}, y={self.y}, width={self.width}, "
+            f"height={self.height}, orientation={self.orientation}, "
+            f"confidence={round(self.confidence, 2)}, shape={self.shape}, "
+            f"background_color={self.background_color}, "
+            f"alphanumeric={repr(self.alphanumeric)}, "
+            f"alphanumeric_color={self.alphanumeric_color})"
         )
